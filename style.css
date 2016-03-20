@@ -28,6 +28,14 @@ h2 {
   margin-bottom: 10pt;
 }
 
+h3 { /* Entrées du manuel seulement */
+  font-size: 20pt;
+
+  padding: 0 0 5pt 15pt;
+  border-bottom: solid white 2px;
+  margin-bottom: 10pt;
+}
+
 /* Éléments */
 canvas {
   display: block;
