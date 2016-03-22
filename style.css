@@ -1,65 +1,79 @@
 /* Document */
-*{margin:0; padding:0;}
+	*{margin:0; padding:0;}
 
-body {
-  color: white;
+	body 
+	{
+		color: lime;	
+		width: 1000px;
+		background-color: black;
+		margin: 10px auto;
+	}
 
-  width: 1000px;
-  background-color: black;
-  margin: 10px auto;
-}
+	/* Headings */
+	h1 
+	{
+		font-size: 40pt;
+		text-align: center;
+		font-weight: bold;
+	
+		padding-bottom: 5pt;
+		border-bottom: solid white 2px;
+		margin-bottom: 10pt;
+	}
 
-/* Headings */
-h1 {
-  font-size: 40pt;
-  text-align: center;
-  font-weight: bold;
+	h2 
+	{
+		font-size: 30pt;
 
-  padding-bottom: 5pt;
-  border-bottom: solid white 2px;
-  margin-bottom: 10pt;
-}
+		padding-bottom: 5pt;
+		border-bottom: solid white 2px;
+		margin-bottom: 10pt;
+	}
 
-h2 {
-  font-size: 30pt;
+	h3 
+	{ /* Entrées du manuel seulement */
+		font-size: 20pt;
 
-  padding-bottom: 5pt;
-  border-bottom: solid white 2px;
-  margin-bottom: 10pt;
-}
+		padding: 0 0 5pt 15pt;
+		border-bottom: solid white 2px;
+		margin-bottom: 10pt;
+	}
 
-h3 { /* Entrées du manuel seulement */
-  font-size: 20pt;
+	/* Éléments */
+	canvas 
+	{
+		display: block;
+		/*position: relative;
+		top: -725px;
+		left: -15px;*/
+		
+		font-size: 40pt;
+		color: red;
+		
+		margin: 0px auto 10px auto;
+		/*border-style: solid;
+		border-color: rgba(0,0,0,0);*/
+		padding: 100px 200px 200px;
+		
+		background-image: url("imgs/CadreJeu.png");
+		background-size: cover;
+	}
 
-  padding: 0 0 5pt 15pt;
-  border-bottom: solid white 2px;
-  margin-bottom: 10pt;
-}
+	p 
+	{
+		font-size: 16pt;
+		text-indent: 30pt;
+	}
 
-/* Éléments */
-canvas {
-  display: block;
-
-  font-size: 40pt;
-  color: red;
-
-  margin: 0px auto 10px auto;
-  border: solid grey 40px;
-}
-
-p {
-  font-size: 16pt;
-  text-indent: 30pt;
-}
-
-a {
-  color: #BBBBFF;
-}
-a[href^=http]::after {
-	content: "";
-	display: inline-block;
-	margin-left: 0.4ex;
-	width: 16px;
-	height: 16px;
-	background-image: url("imgs/lienExterne.png");
-}
+	a 
+	{
+		color: grey
+	}
+	a[href^=http]::after {
+		content: "";
+		display: inline-block;
+		margin-left: 0.4ex;
+		width: 16px;
+		height: 16px;
+		background-image: url("imgs/lienExterne.png");
+	}
