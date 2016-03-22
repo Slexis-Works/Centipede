@@ -1,3 +1,10 @@
+// Constantes utiles au programme:
+var HAUTEUR_JOUEUR = 32, LARGEUR_JOUEUR = 32;
+var CHAMPIS_MIN = 30, CHAMPIS_MAX = 34;
+var HAUTEUR_CHAMPI = 32, LARGEUR_CHAMPI = 32;
+
+var HAUTEUR_GRILLE = 10, LARGEUR_GRILLE = 10;
+
 // Variables (globales) du programme
 
 var cnv = null, ctx = null;
@@ -11,6 +18,17 @@ var appuiHaut = false, appuiBas = false,
     appuiGauche = false, appuiDroite = false;
 var appuiTir = false;
 
+// Types agrégés
+var joueur;
+var nbChampis, champis = [];
+var centipede = [];
+var tir;
+var centipede = [];
+var araignee, puce, scorpion;
+
+var niveau;
+var score;
+
 init = function() {
     // instanciation de la variable globale contenant le contexte
     cnv = document.getElementById("cnv");
@@ -22,6 +40,19 @@ init = function() {
     // on associe au document un écouteur d'événements souris
     //document.addEventListener("click", captureClicSouris)
 
+    // Initialisation des variables
+    joueur = {
+      boite: {x: (cnv.width-LARGEUR_JOUEUR)/2, y: cnv.height-HAUTEUR_JOUEUR, w: LARGEUR_JOUEUR, h: HAUTEUR_JOUEUR},
+      vies: 2,
+      vitesse: 1.0
+    };
+
+    nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
+    // console.log(nbChampis);
+
+    for (var i=0 ; i<nbChampis ; i++) {
+      champis[i] = creerChampi(champis);
+    }
     // lancement de la boucle de jeu
     boucleDeJeu();
 }
@@ -52,6 +83,30 @@ update = function(d) {
 render = function() {
     // effacement de l'écran
     ctx.clearRect(0, 0, cnv.width, cnv.height);
+}
+
+//////////////////
+// Utilitaires //
+////////////////
+
+/**
+ * Fonction qui génère un champignon sain à une place disponible dans la grille
+ */
+function creerChampi() {
+  var nouvChampiX, nouvChampiY, duplique;
+  do {
+    nouvChampiX = Math.floor(Math.random()*LARGEUR_GRILLE)*LARGEUR_CHAMPI;
+    nouvChampiY = Math.floor(Math.random()*HAUTEUR_GRILLE)*HAUTEUR_CHAMPI;
+    duplique = false;
+    for (var ch=0 ; ch<champis.length ; ch++) {
+      duplique |= champis[ch].boite.x == nouvChampiX && champis[ch].boite.y == nouvChampiY;
+    }
+  } while (duplique);
+  return {
+    boite: {x: nouvChampiX, y: nouvChampiY, w: LARGEUR_CHAMPI, h: HAUTEUR_CHAMPI},
+    vie: 4,
+    estVeneneux: false
+  };
 }
 
 
