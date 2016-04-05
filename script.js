@@ -9,6 +9,8 @@ var HAUTEUR_GRILLE = 10, LARGEUR_GRILLE = 10;
 
 var cnv = null, ctx = null;
 
+var lastTime = 0;
+
 // Touches clavier
 var toucheHaut = false, toucheBas = false,
     toucheGauche = false, toucheDroite = false;
@@ -53,7 +55,9 @@ init = function() {
     for (var i=0 ; i<nbChampis ; i++) {
       champis[i] = creerChampi(champis);
     }
+
     // lancement de la boucle de jeu
+    lastTime = Date.now();
     boucleDeJeu();
 }
 
@@ -73,7 +77,9 @@ boucleDeJeu = function() {
  *  @param  d   date courante
  */
 update = function(d) {
-
+    var dt = d - lastTime;
+    lastTime = d;
+    
 }
 
 
