@@ -80,8 +80,8 @@ init = function() {
     ctx = cnv.getContext("2d");
 
     // 2 écouteurs pour le clavier (appui/relâchement d'une touche)
-    document.addEventListener("keydown", captureAppuiToucheClavier)
-    document.addEventListener("keyup", captureRelacheToucheClavier)
+    document.addEventListener("keydown", captureAppuiToucheClavier);
+    document.addEventListener("keyup", captureRelacheToucheClavier);
     // on associe au document un écouteur d'événements souris
     //document.addEventListener("click", captureClicSouris)
 
@@ -211,7 +211,7 @@ function collision (e1,e2)
 }
 
 function dessineBoite(obj) {
-    console.log(obj);
+    //console.log(obj);
     ctx.drawImage(obj.boite.img, obj.boite.x, obj.boite.y);
 }
 /**
@@ -224,15 +224,19 @@ captureAppuiToucheClavier = function(event) {
     switch (event.keyCode) {
       case 38:
         toucheHaut = true;
+        event.preventDefault();
         break;
       case 40:
         toucheBas = true;
+        event.preventDefault();
         break;
       case 37:
         toucheGauche = true;
+        event.preventDefault();
         break;
       case 39:
         toucheDroite = true;
+        event.preventDefault();
         break;
       case 90:
         toucheZ = true;
