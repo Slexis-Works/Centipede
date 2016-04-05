@@ -124,6 +124,8 @@ update = function(d) {
 render = function() {
     // effacement de l'écran
     ctx.clearRect(0, 0, cnv.width, cnv.height);
+    ctx.fillStyle="#002";
+    ctx.fillRect(0, 0, cnv.width, cnv.height);
 
     dessineBoite(joueur);
     for (var i=0 ; i<champis.length ; i++)
@@ -139,7 +141,7 @@ function deplacementPersonnage()
 	if (appuiDroite && joueur.boite.x+joueur.boite.w < cnv.width) {
         joueur.boite.x += joueur.vitesse*dt;
 		for(var i =0 ; i < champis.length;i++)
-			if (collision(joueur,champis[i]))
+			if (collisionTolerante(joueur,champis[i], 10))
 			{
 				joueur.boite.x -= joueur.vitesse*dt;
 				break;
@@ -150,7 +152,7 @@ function deplacementPersonnage()
 	if(appuiGauche && joueur.boite.x> 0) {
 		joueur.boite.x -=joueur.vitesse*dt;
 		for(var i =0 ; i < champis.length;i++)
-			if (collision(joueur,champis[i]))
+			if (collisionTolerante(joueur,champis[i], 10))
 			{
 				joueur.boite.x += joueur.vitesse*dt;
 				break;				
@@ -160,7 +162,7 @@ function deplacementPersonnage()
 	if(appuiHaut && joueur.boite.y+joueur.boite.h > HAUT_ZONE_JOUEUR) {
 		joueur.boite.y -= joueur.vitesse*dt;
 		for(var i =0 ; i < champis.length;i++)
-			if (collision(joueur,champis[i]))
+			if (collisionTolerante(joueur,champis[i], 10))
 			{
 				joueur.boite.y += joueur.vitesse*dt;
 				break;
@@ -171,7 +173,7 @@ function deplacementPersonnage()
 	if(appuiBas && joueur.boite.y+joueur.boite.h < cnv.height) {
 		joueur.boite.y += joueur.vitesse*dt;
 		for(var i =0 ; i < champis.length;i++)
-			if (collision(joueur,champis[i]))
+			if (collisionTolerante(joueur,champis[i], 10))
 			{
 				joueur.boite.y -= joueur.vitesse*dt;
 				break;
@@ -241,8 +243,20 @@ function collision (e1,e2)
                  rectangle1.y >= rectangle2.y+rectangle2.h);
 }
 
+function collisionTolerante (e1,e2, t)
+{
+	var rectangle1 = e1.boite;
+	var rectangle2 = e2.boite;
+	return !(rectangle1.x + rectangle1.w <= rectangle2.x + t ||
+                rectangle1.x + t >= rectangle2.x + rectangle2.w ||
+                rectangle1.y + rectangle1.h <= rectangle2.y + t ||
+                rectangle1.y + t >= rectangle2.y + rectangle2.h);
+}
+
 function dessineBoite(obj) {
     //console.log(obj);
+    //ctx.fillStyle = "#0f0";
+    //ctx.fillRect(obj.boite.x, obj.boite.y, obj.boite.w, obj.boite.h);
     ctx.drawImage(obj.boite.img, obj.boite.x, obj.boite.y);
 }
 /**
