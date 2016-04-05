@@ -158,7 +158,7 @@ function deplacementPersonnage()
 	}
 
 	if(appuiHaut && joueur.boite.y+joueur.boite.h > HAUT_ZONE_JOUEUR) {
-		joueur.boite.y--;
+		joueur.boite.y -= joueur.vitesse*dt;
 		for(var i =0 ; i < champis.length;i++)
 			if (collision(joueur,champis[i]))
 			{
@@ -169,7 +169,7 @@ function deplacementPersonnage()
 	}
 
 	if(appuiBas && joueur.boite.y+joueur.boite.h < cnv.height) {
-		joueur.boite.y++;
+		joueur.boite.y += joueur.vitesse*dt;
 		for(var i =0 ; i < champis.length;i++)
 			if (collision(joueur,champis[i]))
 			{
@@ -283,6 +283,7 @@ captureAppuiToucheClavier = function(event) {
         break;
       case 32:
         appuiTir = true;
+        event.preventDefault();
     }
 
     miseAJourAppuis();
