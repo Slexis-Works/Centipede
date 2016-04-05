@@ -12,6 +12,7 @@ var cnv = null, ctx = null;
 var lastTime = 0, dt;
 
 // Touches clavier
+
 var toucheHaut = false, toucheBas = false,
     toucheGauche = false, toucheDroite = false;
 var toucheZ = false, toucheS = false,
@@ -21,6 +22,7 @@ var appuiHaut = false, appuiBas = false,
 var appuiTir = false;
 
 // Types agrégés
+
 var joueur;
 var nbChampis, champis = [];
 var centipede = [];
@@ -107,7 +109,10 @@ boucleDeJeu = function() {
 update = function(d) {
     dt = d - lastTime;
     lastTime = d;    
+	deplacementPersonnage();
 }
+
+
 
 
 
@@ -129,50 +134,59 @@ render = function() {
 
 function deplacementPersonnage()
 {
-	if (toucheDroite && joueur.boite.x < cnv.width) {
-        boite.dt++;
-		//if (collision())
+	if (appuiDroite && joueur.boite.x < cnv.width) {
+        joueur.boite.x++;
+		for(var i =0 ; i <= champis.length;i++)
+			if (collision(joueur,champis[i]))
+				joueur.boite.x--;
 	}
 	
-	if(toucheGauche && joueur.boite.x > 0) {
-		boite.dt--;
-		//if (collision())
+	if(appuiGauche && joueur.boite.x > 0) {
+		joueur.boite.x--;
+		for(var i =0 ; i <= champis.length;i++)
+			if (collision(joueur,champis[i]))
+				joueur.boite.x++;
 	}
 
-	if(toucheHaut && joueur.boite.y > 0) {
-		boite.dt--;
-		//if (collision())
+	if(appuiHaut && joueur.boite.y > 0) {
+		joueur.boite.y--;
+		for(var i =0 ; i <= champis.length;i++)
+			if (collision(joueur,champis[i]))
+				joueur.boite.y++;
 	}
 
-	if(toucheGauche && joueur.boite.y < cnv.height) {
-		boite.dt--;
-		//if (collision())
+	if(appuiBas && joueur.boite.y < cnv.height) {
+		joueur.boite.y++;
+		for(var i =0 ; i <= champis.length;i++)
+			if (collision(joueur,champis[i]))
+				joueur.boite.y--;
 	}
+}
 
 //Avec Z,Q,S,Date
-
-	if (toucheD && joueur.boite.x < cnv.width) {
+/*
+	if (appuiD && joueur.boite.x < cnv.width) {
         boite.dt++;
 		//if (collision())
 	}
 	
-	if(toucheQ && joueur.boite.x > 0) {
+	if(appuiQ && joueur.boite.x > 0) {
 		boite.dt--;
 		//if (collision())
 	}
 
-	if(toucheZ && joueur.boite.y > 0) {
+	if(appuiZ && joueur.boite.y > 0) {
 		boite.dt--;
 		//if (collision())
 	}
 
-	if(toucheS && joueur.boite.y < cnv.height) {
+	if(appuiS && joueur.boite.y < cnv.height) {
 		boite.dt--;
 		//if (collision())
 	}
 
 }
-
+*/
 //////////////////
 // Utilitaires //
 ////////////////
