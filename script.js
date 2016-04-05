@@ -3,7 +3,9 @@ var HAUTEUR_JOUEUR = 32, LARGEUR_JOUEUR = 32;
 var CHAMPIS_MIN = 30, CHAMPIS_MAX = 34;
 var HAUTEUR_CHAMPI = 32, LARGEUR_CHAMPI = 32;
 
-var HAUTEUR_GRILLE = 10, LARGEUR_GRILLE = 10;
+var HAUTEUR_GRILLE = 15, LARGEUR_GRILLE = 15;
+
+var HAUT_ZONE_JOUEUR = (HAUTEUR_GRILLE-5)*HAUTEUR_CHAMPI;
 
 // Variables (globales) du programme
 
@@ -68,7 +70,7 @@ initJoueur = function() {
         joueur = {
           boite: {x: (cnv.width-LARGEUR_JOUEUR)/2, y: cnv.height-HAUTEUR_JOUEUR, w: LARGEUR_JOUEUR, h: HAUTEUR_JOUEUR, img: playerImg},
           vies: 2,
-          vitesse: 1.0
+          vitesse: 0.1
         };
         //console.log("Joueur initialisé !");
         initChampignons();
@@ -134,32 +136,47 @@ render = function() {
 
 function deplacementPersonnage()
 {
-	if (appuiDroite && joueur.boite.x < cnv.width) {
-        joueur.boite.x++;
-		for(var i =0 ; i <= champis.length;i++)
+	if (appuiDroite && joueur.boite.x+joueur.boite.w < cnv.width) {
+        joueur.boite.x += joueur.vitesse*dt;
+		for(var i =0 ; i < champis.length;i++)
 			if (collision(joueur,champis[i]))
-				joueur.boite.x--;
+			{
+				joueur.boite.x -= joueur.vitesse*dt;
+				break;
+			}
+				
 	}
 	
-	if(appuiGauche && joueur.boite.x > 0) {
-		joueur.boite.x--;
-		for(var i =0 ; i <= champis.length;i++)
+	if(appuiGauche && joueur.boite.x> 0) {
+		joueur.boite.x -=joueur.vitesse*dt;
+		for(var i =0 ; i < champis.length;i++)
 			if (collision(joueur,champis[i]))
-				joueur.boite.x++;
+			{
+				joueur.boite.x += joueur.vitesse*dt;
+				break;				
+			}
 	}
 
-	if(appuiHaut && joueur.boite.y > 0) {
+	if(appuiHaut && joueur.boite.y+joueur.boite.h > HAUT_ZONE_JOUEUR) {
 		joueur.boite.y--;
-		for(var i =0 ; i <= champis.length;i++)
+		for(var i =0 ; i < champis.length;i++)
 			if (collision(joueur,champis[i]))
-				joueur.boite.y++;
+			{
+				joueur.boite.y += joueur.vitesse*dt;
+				break;
+			}
+				
 	}
 
-	if(appuiBas && joueur.boite.y < cnv.height) {
+	if(appuiBas && joueur.boite.y+joueur.boite.h < cnv.height) {
 		joueur.boite.y++;
-		for(var i =0 ; i <= champis.length;i++)
+		for(var i =0 ; i < champis.length;i++)
 			if (collision(joueur,champis[i]))
-				joueur.boite.y--;
+			{
+				joueur.boite.y -= joueur.vitesse*dt;
+				break;
+			}
+				
 	}
 }
 
