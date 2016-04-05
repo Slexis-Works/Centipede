@@ -31,6 +31,49 @@ var araignee, puce, scorpion;
 var niveau;
 var score;
 
+/////////////////////
+// Initialisation //
+///////////////////
+
+initLancement = function() {
+    // lancement de la boucle de jeu
+    lastTime = Date.now();
+    boucleDeJeu();
+
+}
+
+initChampignons = function() {
+    //console.log("Initialisation des champignons…");
+    var champisImg = new Image();
+    champisImg.onload = function () {
+        nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
+        //console.log(nbChampis);
+
+        for (var i=0 ; i<nbChampis ; i++) {
+          champis[i] = creerChampi(champis);
+          champis[i].boite.img = champisImg;
+        }
+        //console.log("Champignons initialisés !");
+        initLancement();
+    }
+    champisImg.src = "imgs/Champignon.png";
+}
+
+initJoueur = function() {
+    //console.log("Initialisation du joueur…");
+    var playerImg = new Image();
+    playerImg.onload = function() {
+        joueur = {
+          boite: {x: (cnv.width-LARGEUR_JOUEUR)/2, y: cnv.height-HAUTEUR_JOUEUR, w: LARGEUR_JOUEUR, h: HAUTEUR_JOUEUR, img: playerImg},
+          vies: 2,
+          vitesse: 1.0
+        };
+        //console.log("Joueur initialisé !");
+        initChampignons();
+    }
+    playerImg.src = "imgs/Joueur.png";
+}
+
 init = function() {
     // instanciation de la variable globale contenant le contexte
     cnv = document.getElementById("cnv");
@@ -43,22 +86,7 @@ init = function() {
     //document.addEventListener("click", captureClicSouris)
 
     // Initialisation des variables
-    joueur = {
-      boite: {x: (cnv.width-LARGEUR_JOUEUR)/2, y: cnv.height-HAUTEUR_JOUEUR, w: LARGEUR_JOUEUR, h: HAUTEUR_JOUEUR},
-      vies: 2,
-      vitesse: 1.0
-    };
-
-    nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
-    // console.log(nbChampis);
-
-    for (var i=0 ; i<nbChampis ; i++) {
-      champis[i] = creerChampi(champis);
-    }
-
-    // lancement de la boucle de jeu
-    lastTime = Date.now();
-    boucleDeJeu();
+    initJoueur();
 }
 
 
@@ -89,6 +117,10 @@ update = function(d) {
 render = function() {
     // effacement de l'écran
     ctx.clearRect(0, 0, cnv.width, cnv.height);
+
+    dessineBoite(joueur);
+    for (var i=0 ; i<champis.length ; i++)
+        dessineBoite(champis[i]);
 }
 
 //////////////////
@@ -129,9 +161,10 @@ function collision (e1,e2)
                  rectangle1.y >= rectangle2.y+rectangle2.h);
 }
 
-function 
-
-
+function dessineBoite(obj) {
+    console.log(obj);
+    ctx.drawImage(obj.boite.img, obj.boite.x, obj.boite.y);
+}
 /**
  *  Fonction appelée lorsqu'une touche du clavier est appuyée
  *  Associée à l'événement "keyDown"
