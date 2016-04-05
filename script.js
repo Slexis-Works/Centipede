@@ -115,6 +115,22 @@ function creerChampi() {
   };
 }
 
+/**
+* Fonction qui test la collision entre deux objets
+*/
+
+function collision (e1,e2)
+{
+	var rectangle1 = e1.boite;
+	var rectangle2 = e2.boite;
+	return !(rectangle1.x+rectangle1.w <= rectangle2.x || 
+                 rectangle1.x >= rectangle2.x+rectangle2.w || 
+                 rectangle1.y+rectangle1.h <= rectangle2.y || 
+                 rectangle1.y >= rectangle2.y+rectangle2.h);
+}
+
+function 
+
 
 /**
  *  Fonction appelée lorsqu'une touche du clavier est appuyée
