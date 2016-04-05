@@ -9,7 +9,7 @@ var HAUTEUR_GRILLE = 10, LARGEUR_GRILLE = 10;
 
 var cnv = null, ctx = null;
 
-var lastTime = 0;
+var lastTime = 0, dt;
 
 // Touches clavier
 var toucheHaut = false, toucheBas = false,
@@ -77,10 +77,10 @@ boucleDeJeu = function() {
  *  @param  d   date courante
  */
 update = function(d) {
-    var dt = d - lastTime;
-    lastTime = d;
-    
+    dt = d - lastTime;
+    lastTime = d;    
 }
+
 
 
 /**
@@ -89,6 +89,56 @@ update = function(d) {
 render = function() {
     // effacement de l'écran
     ctx.clearRect(0, 0, cnv.width, cnv.height);
+}
+
+/////////////////////
+// Sous-fonctions //
+///////////////////
+
+function deplacementPersonnage()
+{
+	if (toucheDroite && joueur.boite.x < cnv.width) {
+        boite.dt++;
+		//if (collision())
+	}
+	
+	if(toucheGauche && joueur.boite.x > 0) {
+		boite.dt--;
+		//if (collision())
+	}
+
+	if(toucheHaut && joueur.boite.y > 0) {
+		boite.dt--;
+		//if (collision())
+	}
+
+	if(toucheGauche && joueur.boite.y < cnv.height) {
+		boite.dt--;
+		//if (collision())
+	}
+
+//Avec Z,Q,S,Date
+
+	if (toucheD && joueur.boite.x < cnv.width) {
+        boite.dt++;
+		//if (collision())
+	}
+	
+	if(toucheQ && joueur.boite.x > 0) {
+		boite.dt--;
+		//if (collision())
+	}
+
+	if(toucheZ && joueur.boite.y > 0) {
+		boite.dt--;
+		//if (collision())
+	}
+
+	if(toucheS && joueur.boite.y < cnv.height) {
+		boite.dt--;
+		//if (collision())
+	}
+
 }
 
 //////////////////
@@ -118,7 +168,6 @@ function creerChampi() {
 /**
 * Fonction qui test la collision entre deux objets
 */
-
 function collision (e1,e2)
 {
 	var rectangle1 = e1.boite;
@@ -129,7 +178,7 @@ function collision (e1,e2)
                  rectangle1.y >= rectangle2.y+rectangle2.h);
 }
 
-function 
+
 
 
 /**
