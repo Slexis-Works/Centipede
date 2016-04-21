@@ -225,12 +225,12 @@ function updateTir()
 			break;
 			}
 		}
-		for(var j=0; j < centipede.length; j++)
+		for(var i=0; i < centipede.length; i++)
 		{
-			if(collision(tir,centipede[i]))
-			{
+			if(centipede[i].etat && collision(tir,centipede[i]))
+			{				
+				detruireSegment(i);
 				tir.actif=false;
-				//fonctiondetruireSegment(i);
 				break;
 			}
 		}
@@ -419,7 +419,7 @@ function detruireChampi (index) {
   }
 }
 
-function detruireSegement(index)
+function detruireSegment(index)
 {
     if (index < centipede.length-1) {
 	// On vérifie le segment d'après
