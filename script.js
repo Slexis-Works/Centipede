@@ -49,7 +49,17 @@ initLancement = function() {
     boucleDeJeu();
 
 }
-
+initTir = function()
+{
+	//console.log("Initialisation du tir...")
+	tir = 
+	{
+		boite: {x: 0, y:0, w:2, h:5, col:"#01FEDC"},
+		actif: false,
+		vitesse: 0.1,		
+	};
+	initLancement();
+}
 initChampignons = function(nbC) {
     //console.log("Initialisation des champignons…");
 	var champisImg = new Image();
@@ -63,24 +73,16 @@ initChampignons = function(nbC) {
 			  champis[i] = creerChampi(champis);
 			  champis[i].boite.img = champisImg;
 			}
+			//console.log("Initialisation du tir");
+			initTir();
 			//console.log("Champignons initialisés !");
-			initLancement();
+			
 		} else
 			initChampignons(nbC+1);
 	}
 	champisImg.src = "imgs/Champignon" + nbC + ".png";
 }
-initTir = function()
-{
-	//console.log("Initialisation du tir...")
-	tir = 
-	{
-		boite: {x: 0, y:0, w:2, h:5},
-		actif: false,
-		vitesse: 0.1,
-		
-	};
-}
+
 initJoueur = function() {
     //console.log("Initialisation du joueur…");
     var playerImg = new Image();
