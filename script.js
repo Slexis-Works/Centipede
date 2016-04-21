@@ -225,6 +225,15 @@ function updateTir()
 			break;
 			}
 		}
+		for(var j=0; j < centipede.length; j++)
+		{
+			if(collision(tir,centipede[i]))
+			{
+				tir.actif=false;
+				//fonctiondetruireSegment(i);
+				break;
+			}
+		}
 			
 	}
 	if(tir.boite.y <= -tir.boite.h )
@@ -408,6 +417,11 @@ function detruireChampi (index) {
   } else {
     champis[index].boite.img = imgsChampis[champis[index].vie];
   }
+}
+
+function detruireSegement()
+{
+	
 }
 
 function dessineBoite(obj) {
