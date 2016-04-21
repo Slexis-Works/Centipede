@@ -54,7 +54,7 @@ initTir = function()
 	//console.log("Initialisation du tir...")
 	tir = 
 	{
-		boite: {x: 0, y:0, w:2, h:5, col:"#01FEDC"},
+		boite: {x: 0, y:0, w:2, h:10, col:"#FE0101"},
 		actif: false,
 		vitesse: 0.1,		
 	};
@@ -133,6 +133,8 @@ update = function(d) {
     dt = d - lastTime;
     lastTime = d;    
 	deplacementPersonnage();
+	updateTir();
+		
 }
 
 
@@ -157,7 +159,19 @@ render = function() {
 /////////////////////
 // Sous-fonctions //
 ///////////////////
-
+function updateTir()
+{
+	if(appuiTir && !tir.actif)
+	{
+		tir.actif = true;
+		tir.boite.x = joueur.boite.x + (LARGEUR_JOUEUR - tir.boite.w)/2;
+		tir.boite.y = joueur.boite.y ;
+	}
+	if(tir.actif)
+	{	
+		tir.boite.y -= tir.vitesse*dt;
+	}
+}
 function deplacementPersonnage()
 {
 	if (appuiDroite && joueur.boite.x+joueur.boite.w < cnv.width) {
