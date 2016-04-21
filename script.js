@@ -62,7 +62,17 @@ initChampignons = function() {
     }
     champisImg.src = "imgs/Champignon.png";
 }
-
+initTir = function()
+{
+	//console.log("Initialisation du tir...")
+	tir = 
+	{
+		boite: {x: 0, y:0, w:2, h:5},
+		actif: false,
+		vitesse: 0.1,
+		
+	};
+}
 initJoueur = function() {
     //console.log("Initialisation du joueur…");
     var playerImg = new Image();
@@ -77,6 +87,7 @@ initJoueur = function() {
     }
     playerImg.src = "imgs/Joueur.png";
 }
+
 
 init = function() {
     // instanciation de la variable globale contenant le contexte
@@ -130,6 +141,7 @@ render = function() {
     dessineBoite(joueur);
     for (var i=0 ; i<champis.length ; i++)
         dessineBoite(champis[i]);
+	dessineBoite(tir);
 }
 
 /////////////////////
@@ -217,7 +229,7 @@ function creerChampi() {
   var nouvChampiX, nouvChampiY, duplique;
   do {
     nouvChampiX = Math.floor(Math.random()*LARGEUR_GRILLE)*LARGEUR_CHAMPI;
-    nouvChampiY = Math.floor(Math.random()*HAUTEUR_GRILLE)*HAUTEUR_CHAMPI;
+    nouvChampiY = Math.floor(Math.random()*HAUTEUR_GRILLE-1)*HAUTEUR_CHAMPI;
     duplique = false;
     for (var ch=0 ; ch<champis.length ; ch++) {
       duplique |= champis[ch].boite.x == nouvChampiX && champis[ch].boite.y == nouvChampiY;
