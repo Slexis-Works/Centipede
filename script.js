@@ -96,7 +96,7 @@ initTir = function()
 	{
 		boite: {x: 0, y:0, w:5, h:15 , col:"#FE0101"},
 		actif: false,
-		vitesse: 0.5,		
+		vitesse: 0.85,		
 	};
 	initCentipede();
 }
@@ -199,6 +199,7 @@ render = function() {
       if (centipede[i] != null && centipede[i].etat != 0)
 	dessineBoite(centipede[i]);
     }
+}
 
 /////////////////////
 // Sous-fonctions //
@@ -403,6 +404,7 @@ function detruireChampi (index) {
   if (champis[index].vie == 0) {
     for (var c=index ; c<champis.length-1 ; c++)
       champis[c] = champis[c+1];
+    champis.pop();
   } else {
     champis[index].boite.img = imgsChampis[champis[index].vie];
   }
