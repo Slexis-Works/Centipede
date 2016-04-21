@@ -2,6 +2,7 @@
 var HAUTEUR_JOUEUR = 32, LARGEUR_JOUEUR = 32;
 var CHAMPIS_MIN = 30, CHAMPIS_MAX = 34;
 var HAUTEUR_CHAMPI = 32, LARGEUR_CHAMPI = 32;
+var DIR_HAUT = 0, DIR_BAS = 1, DIR_GAUCHE = 2, DIR_DROITE = 3; // DO NOT EDIT
 
 var HAUTEUR_GRILLE = 15, LARGEUR_GRILLE = 15;
 
@@ -29,8 +30,8 @@ var joueur;
 var nbChampis, champis = []; // Le compteur ne servira qu'au début
 var centipede = [];
 var tir;
-var centipede = [];
 var araignee, puce, scorpion;
+
 
 var niveau;
 var score;
@@ -38,6 +39,7 @@ var score;
 // Variables pour le programme
 
 var imgsChampis = [];
+var imgTeteCenti, imgCorpsCenti;
 
 /////////////////////
 // Initialisation //
@@ -49,6 +51,44 @@ initLancement = function() {
     boucleDeJeu();
 
 }
+initCentipede = function() {
+    imgTeteCenti = new Image();
+    imgTeteCenti.onload = function() {
+      imgCorpsCenti = new Image();
+      imgCorpsCenti.onload = function () {
+	centipede[0] = {
+	  etat: 1,
+	  vitesse: 0.3,
+	  direction: DIR_DROITE,
+	  boite: {
+	    x: 6*LARGEUR_CHAMPI,
+	    y: 0,
+	    w: LARGEUR_CHAMPI,
+	    h: LARGEUR_CHAMPI,
+	    img: imgTeteCenti
+	  }
+	};
+	for (var seg=1 ; seg<=12 ; seg++) {
+	  centipede[seg] = {
+	    etat: 2,
+	    vitesse: 0.3,
+	    direction: 1,
+	    checkpoints: [{nextDir:DIR_DROITE, px: 0}],
+	    boite: {
+	      x: 6*LARGEUR_CHAMPI,
+	      y: -seg*LARGEUR_CHAMPI,
+	      w: LARGEUR_CHAMPI,
+	      h: LARGEUR_CHAMPI,
+	      img: imgCorpsCenti
+	    }
+	  };
+	}
+	initLancement();
+      }
+      imgCorpsCenti.src = "imgs/CorpsCentipedeHaut.png";
+    }
+    imgTeteCenti.src = "imgs/TeteCentipedeHaut.png";
+}
 initTir = function()
 {
 	//console.log("Initialisation du tir...")
@@ -58,7 +98,7 @@ initTir = function()
 		actif: false,
 		vitesse: 0.1,		
 	};
-	initLancement();
+	initCentipede();
 }
 initChampignons = function(nbC) {
     //console.log("Initialisation des champignons…");
@@ -134,7 +174,7 @@ update = function(d) {
     lastTime = d;    
 	deplacementPersonnage();
 	updateTir();
-		
+    avancementCentipedes();
 }
 
 
@@ -154,6 +194,10 @@ render = function() {
     for (var i=0 ; i<champis.length ; i++)
         dessineBoite(champis[i]);
 	dessineBoite(tir);
+    for (var i=0 ; i<centipede.length ; i++) {
+      if (centipede[i] != null && centipede[i].etat != 0)
+	dessineBoite(centipede[i]);
+    }
 }
 
 /////////////////////
@@ -216,6 +260,56 @@ function deplacementPersonnage()
 			}
 				
 	}
+}
+
+function avancementCentipedes() {
+  for (var i=0 ; i<centipede.length ; i++) {
+    switch (centipede[i].etat) {
+      case 1: // Tête qui fonce comme elle peut
+	if (centipede[i].direction == DIR_HAUT || centipede[i].direction == DIR_BAS)
+	  centipede[i].boite.y += (centipede[i].direction*2-1) * centipede[i].vitesse * dt;
+	else
+	  centipede[i].boite.x += ((centipede[i].direction-2)*2-1) * centipede[i].vitesse * dt;
+	break;
+      case 2: // Segment qui suit ses checkpoints
+	/*if (centipede[i].direction == DIR_HAUT || centipede[i].direction == DIR_BAS) {
+	  centipede[i].boite.y += (centipede[i].direction*2-1) * centipede[i].vitesse * dt;
+	} else {
+	  centipede[i].boite.x += ((centipede[i].direction-2)*2-1) * centipede[i].vitesse * dt;
+	}*/
+	switch (centipede[i].direction) {
+	  case DIR_HAUT:
+	    centipede[i].boite.y -= centipede[i].vitesse*dt;
+	    if (centipede[i].checkpoints.length && centipede[i].boite.y <= centipede[i].checkpoints[0].px) {
+	      centipede[i].boite.y = centipede[i].checkpoints[0].px;
+	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
+	    }
+	    break;
+	  case DIR_BAS:
+	    centipede[i].boite.y += centipede[i].vitesse*dt;
+	    if (centipede[i].checkpoints.length && centipede[i].boite.y >= centipede[i].checkpoints[0].px) {
+	      centipede[i].boite.y = centipede[i].checkpoints[0].px;
+	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
+	    }
+	    break;
+	  case DIR_GAUCHE:
+	    centipede[i].boite.x -= centipede[i].vitesse*dt;
+	    if (centipede[i].checkpoints.length && centipede[i].boite.x <= centipede[i].checkpoints[0].px) {
+	      centipede[i].boite.x = centipede[i].checkpoints[0].px;
+	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
+	    }
+	    break;
+	  case DIR_DROITE:
+	    centipede[i].boite.x += centipede[i].vitesse*dt;
+	    if (centipede[i].checkpoints.length && centipede[i].boite.x >= centipede[i].checkpoints[0].px) {
+	      centipede[i].boite.x = centipede[i].checkpoints[0].px;
+	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
+	    }
+	    break;
+	}
+	break;
+    }
+  }
 }
 
 //Avec Z,Q,S,Date
