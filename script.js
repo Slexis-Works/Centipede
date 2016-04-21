@@ -26,7 +26,7 @@ var appuiTir = false;
 // Types agrégés
 
 var joueur;
-var nbChampis, champis = [];
+var nbChampis, champis = []; // Le compteur ne servira qu'au début
 var centipede = [];
 var tir;
 var centipede = [];
@@ -273,6 +273,16 @@ function collisionTolerante (e1,e2, t)
                 rectangle1.x + t >= rectangle2.x + rectangle2.w ||
                 rectangle1.y + rectangle1.h <= rectangle2.y + t ||
                 rectangle1.y + t >= rectangle2.y + rectangle2.h);
+}
+
+function detruireChampi (index) {
+  champis[index].vie--;
+  if (champis[index].vie == 0) {
+    for (var c=index ; c<champis.length-1 ; c++)
+      champis[c] = champis[c+1];
+  } else {
+    champis[index].boite.img = imgsChampis[champis[index].vie];
+  }
 }
 
 function dessineBoite(obj) {
