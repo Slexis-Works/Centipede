@@ -257,7 +257,14 @@ function dessineBoite(obj) {
     //console.log(obj);
     //ctx.fillStyle = "#0f0";
     //ctx.fillRect(obj.boite.x, obj.boite.y, obj.boite.w, obj.boite.h);
-    ctx.drawImage(obj.boite.img, obj.boite.x, obj.boite.y);
+	if (obj.boite != null) {
+		if (obj.boite.img != null)
+			ctx.drawImage(obj.boite.img, obj.boite.x, obj.boite.y);
+		else if (obj.boite.col != null) {
+			ctx.fillStyle = obj.boite.col;
+			ctx.fillRect(obj.boite.x, obj.boite.y, obj.boite.w, obj.boite.h);
+		}
+	}
 }
 /**
  *  Fonction appelée lorsqu'une touche du clavier est appuyée
