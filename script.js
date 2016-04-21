@@ -94,9 +94,9 @@ initTir = function()
 	//console.log("Initialisation du tir...")
 	tir = 
 	{
-		boite: {x: 0, y:0, w:2, h:10, col:"#FE0101"},
+		boite: {x: 0, y:0, w:5, h:15 , col:"#FE0101"},
 		actif: false,
-		vitesse: 0.1,		
+		vitesse: 0.5,		
 	};
 	initCentipede();
 }
@@ -193,12 +193,12 @@ render = function() {
     dessineBoite(joueur);
     for (var i=0 ; i<champis.length ; i++)
         dessineBoite(champis[i]);
+    if(tir.actif)
 	dessineBoite(tir);
     for (var i=0 ; i<centipede.length ; i++) {
       if (centipede[i] != null && centipede[i].etat != 0)
 	dessineBoite(centipede[i]);
     }
-}
 
 /////////////////////
 // Sous-fonctions //
@@ -210,10 +210,25 @@ function updateTir()
 		tir.actif = true;
 		tir.boite.x = joueur.boite.x + (LARGEUR_JOUEUR - tir.boite.w)/2;
 		tir.boite.y = joueur.boite.y ;
+		
 	}
 	if(tir.actif)
 	{	
 		tir.boite.y -= tir.vitesse*dt;
+		for(var i =0 ; i < champis.length;i++)
+		{
+			if(collision(tir,champis[i]))
+			{
+			tir.actif=false;
+			detruireChampi(i);			
+			break;
+			}
+		}
+			
+	}
+	if(tir.boite.y <= -tir.boite.h )
+	{
+		tir.actif=false;
 	}
 }
 function deplacementPersonnage()
