@@ -56,7 +56,7 @@ initTir = function()
 	{
 		boite: {x: 0, y:0, w:2, h:10, col:"#FE0101"},
 		actif: false,
-		vitesse: 0.1,		
+		vitesse: 0.5,		
 	};
 	initLancement();
 }
@@ -170,6 +170,16 @@ function updateTir()
 	if(tir.actif)
 	{	
 		tir.boite.y -= tir.vitesse*dt;
+		for(var i =0 ; i <= HAUTEUR_GRILLE;i++)
+		if(collision(tir,champis[i]))
+		{
+			tir.actif=false;
+		}
+	}
+	if(tir.boite.y <14 )
+	{
+		tir.actif=false;
+	
 	}
 }
 function deplacementPersonnage()
