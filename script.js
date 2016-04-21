@@ -58,7 +58,7 @@ initCentipede = function() {
       imgCorpsCenti.onload = function () {
 	centipede[0] = {
 	  etat: 1,
-	  vitesse: 0.3,
+	  vitesse: 0.05,
 	  direction: DIR_DROITE,
 	  boite: {
 	    x: 6*LARGEUR_CHAMPI,
@@ -68,10 +68,10 @@ initCentipede = function() {
 	    img: imgTeteCenti
 	  }
 	};
-	for (var seg=1 ; seg<=12 ; seg++) {
+	for (var seg=1 ; seg<12 ; seg++) {
 	  centipede[seg] = {
 	    etat: 2,
-	    vitesse: 0.3,
+	    vitesse: 0.05,
 	    direction: 1,
 	    checkpoints: [{nextDir:DIR_DROITE, px: 0}],
 	    boite: {
@@ -196,7 +196,7 @@ render = function() {
     if(tir.actif)
 	dessineBoite(tir);
     for (var i=0 ; i<centipede.length ; i++) {
-      if (centipede[i] != null && centipede[i].etat != 0)
+      if (centipede[i] != null && centipede[i].etat)
 	dessineBoite(centipede[i]);
     }
 }
@@ -419,9 +419,26 @@ function detruireChampi (index) {
   }
 }
 
-function detruireSegement()
+function detruireSegement(index)
 {
-	
+    if (index < centipede.length-1) {
+	// On vérifie le segment d'après
+	if (centipede[index+1].etat == 2) {
+	    centipede[index+1].etat = 1;
+	    centipede[index+1].boite.img = imgTeteCenti;
+	    var seg = index+2;
+	    if (centipede[index].etat == 2) {
+	      while (seg < centipede.length && centipede[seg].etat == 2) {
+		for (var ch = 0 ; ch < centipede[index].checkpoints.length ; ch++) {
+		  centipede[seg].checkpoints.pop();
+		}
+		seg++;
+	      }
+	    }
+	    centipede[index+1].checkpoints = null;
+	}
+    }
+    centipede[index].etat = 0;
 }
 
 function dessineBoite(obj) {
