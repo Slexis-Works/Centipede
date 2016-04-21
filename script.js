@@ -35,6 +35,10 @@ var araignee, puce, scorpion;
 var niveau;
 var score;
 
+// Variables pour le programme
+
+var imgsChampis = [];
+
 /////////////////////
 // Initialisation //
 ///////////////////
@@ -46,21 +50,25 @@ initLancement = function() {
 
 }
 
-initChampignons = function() {
+initChampignons = function(nbC) {
     //console.log("Initialisation des champignons…");
-    var champisImg = new Image();
-    champisImg.onload = function () {
-        nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
-        //console.log(nbChampis);
+	var champisImg = new Image();
+	champisImg.onload = function () {
+		imgsChampis[nbC] = champisImg;
+		if (nbC == 4) {
+			nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
+			//console.log(nbChampis);
 
-        for (var i=0 ; i<nbChampis ; i++) {
-          champis[i] = creerChampi(champis);
-          champis[i].boite.img = champisImg;
-        }
-        //console.log("Champignons initialisés !");
-        initLancement();
-    }
-    champisImg.src = "imgs/Champignon.png";
+			for (var i=0 ; i<nbChampis ; i++) {
+			  champis[i] = creerChampi(champis);
+			  champis[i].boite.img = champisImg;
+			}
+			//console.log("Champignons initialisés !");
+			initLancement();
+		} else
+			initChampignons(nbC+1);
+	}
+	champisImg.src = "imgs/Champignon" + nbC + ".png";
 }
 initTir = function()
 {
@@ -83,7 +91,7 @@ initJoueur = function() {
           vitesse: 0.1
         };
         //console.log("Joueur initialisé !");
-        initChampignons();
+        initChampignons(1);
     }
     playerImg.src = "imgs/Joueur.png";
 }
