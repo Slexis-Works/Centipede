@@ -38,7 +38,7 @@ var score;
 
 // Variables pour le programme
 
-var imgsChampis = [];
+var imgsChampis = [null, [], [], [],[],[]];
 var imgTeteCenti, imgCorpsCenti;
 
 /////////////////////
@@ -48,7 +48,10 @@ var imgTeteCenti, imgCorpsCenti;
 initLancement = function() {
     // lancement de la boucle de jeu
     lastTime = Date.now();
+	score = 0;
+	niveau = 1;
     boucleDeJeu();
+	
 
 }
 initCentipede = function() {
@@ -58,7 +61,7 @@ initCentipede = function() {
       imgCorpsCenti.onload = function () {
 	centipede[0] = {
 	  etat: 1,
-	  vitesse: 0.05,
+	  vitesse: 0.020,
 	  direction: DIR_DROITE,
 	  boite: {
 	    x: 6*LARGEUR_CHAMPI,
@@ -71,7 +74,7 @@ initCentipede = function() {
 	for (var seg=1 ; seg<12 ; seg++) {
 	  centipede[seg] = {
 	    etat: 2,
-	    vitesse: 0.05,
+	    vitesse: 0.020,
 	    direction: 1,
 	    checkpoints: [{nextDir:DIR_DROITE, px: 0}],
 	    boite: {
@@ -100,27 +103,31 @@ initTir = function()
 	};
 	initCentipede();
 }
-initChampignons = function(nbC) {
+initChampignons = function(nbC, lvl) {
     //console.log("Initialisation des champignons…");
 	var champisImg = new Image();
 	champisImg.onload = function () {
-		imgsChampis[nbC] = champisImg;
+		console.debug("lvl="+lvl+" nbC="+nbC)
+		imgsChampis[lvl][nbC] = champisImg; // lvl nbc + modif init
 		if (nbC == 4) {
-			nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
-			//console.log(nbChampis);
+			if(lvl == 5) 
+			{
+				nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
+				//console.log(nbChampis);
 
-			for (var i=0 ; i<nbChampis ; i++) {
-			  champis[i] = creerChampi(champis);
-			  champis[i].boite.img = champisImg;
-			}
-			//console.log("Initialisation du tir");
-			initTir();
-			//console.log("Champignons initialisés !");
-			
+				for (var i=0 ; i<nbChampis ; i++) {
+				  champis[i] = creerChampi(champis);
+				  champis[i].boite.img = imgsChampis[1][4];
+				}
+				//console.log("Initialisation du tir");
+				initTir();
+				//console.log("Champignons initialisés !");
+			}else 
+				initChampignons(1, lvl +1);
 		} else
-			initChampignons(nbC+1);
+			initChampignons(nbC+1, lvl);
 	}
-	champisImg.src = "imgs/Champignon" + nbC + ".png";
+	champisImg.src = "imgs/Champignon" + nbC + "Lvl"+ lvl  + ".png";
 }
 
 initJoueur = function() {
@@ -133,7 +140,7 @@ initJoueur = function() {
           vitesse: 0.1
         };
         //console.log("Joueur initialisé !");
-        initChampignons(1);
+        initChampignons(1,1);
     }
     playerImg.src = "imgs/Joueur.png";
 }
@@ -152,6 +159,7 @@ init = function() {
 
     // Initialisation des variables
     initJoueur();
+	
 }
 
 
@@ -175,6 +183,7 @@ update = function(d) {
 	deplacementPersonnage();
 	updateTir();
     avancementCentipedes();
+	drawScore();
 }
 
 
@@ -189,7 +198,7 @@ render = function() {
     ctx.clearRect(0, 0, cnv.width, cnv.height);
     ctx.fillStyle="#002";
     ctx.fillRect(0, 0, cnv.width, cnv.height);
-
+	drawScore(score);
     dessineBoite(joueur);
     for (var i=0 ; i<champis.length ; i++)
         dessineBoite(champis[i]);
@@ -204,6 +213,11 @@ render = function() {
 /////////////////////
 // Sous-fonctions //
 ///////////////////
+function drawScore() {
+    ctx.font = "bold 30px Arial";
+    ctx.fillStyle = "#FF0000";
+    ctx.fillText("Score: "+score, 01, 20);
+}
 function updateTir()
 {
 	if(appuiTir && !tir.actif)
@@ -221,7 +235,8 @@ function updateTir()
 			if(collision(tir,champis[i]))
 			{
 			tir.actif=false;
-			detruireChampi(i);			
+			detruireChampi(i);
+			//score = score  + 1;
 			break;
 			}
 		}
@@ -410,13 +425,17 @@ function collisionTolerante (e1,e2, t)
 
 function detruireChampi (index) {
   champis[index].vie--;
+  
   if (champis[index].vie == 0) {
     for (var c=index ; c<champis.length-1 ; c++)
       champis[c] = champis[c+1];
-    champis.pop();
+		champis.pop();
+		score = score + 1;
   } else {
-    champis[index].boite.img = imgsChampis[champis[index].vie];
+    champis[index].boite.img = imgsChampis[niveau][champis[index].vie];
+	
   }
+
 }
 
 function detruireSegment(index)
@@ -440,6 +459,7 @@ function detruireSegment(index)
     }
     centipede[index].etat = 0;
 }
+
 
 function dessineBoite(obj) {
     //console.log(obj);
