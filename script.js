@@ -76,7 +76,7 @@ initCentipede = function() {
 	for (var seg=1 ; seg<12 ; seg++) {
 	  centipede[seg] = {
 	    etat: 2,
-	    vitesse: 0.020,
+	    vitesse: 0.2,
 	    direction: 1,
 	    //checkpoints: [{nextDir:DIR_DROITE, px: 0}],
 	    checkpoints: [],
@@ -326,7 +326,6 @@ function avancementCentipedes() {
 		    var seg = i+1;
 		    while (seg < centipede.length && centipede[seg].etat == 2) {
 			centipede[seg].checkpoints.push({nextDir: centipede[i].direction, px: centipede[i].boite.y});
-			console.log("Pushed!");
 			seg++;
 		    }
 
@@ -334,10 +333,47 @@ function avancementCentipedes() {
 		break;
 	    case DIR_GAUCHE:
 		centipede[i].boite.x -= centipede[i].vitesse * dt;
-		
+		var goDown = centipede[i].boite.x < 0;
+		if (!goDown) {
+		    for(var ch =0 ; ch < champis.length ; ch++) {
+			if (champis[ch].boite.x < centipede[i].boite.x && collision(centipede[i],champis[ch])) {
+			    goDown = true;
+			    break;
+			}
+		    }
+		}
+		if (goDown) {
+		    centipede[i].debutVertical = centipede[i].boite.y;
+		    centipede[i].ancienneDir = DIR_GAUCHE;
+		    centipede[i].direction = DIR_BAS;
+		    var seg = i+1;
+		    while (seg < centipede.length && centipede[seg].etat == 2) {
+			centipede[seg].checkpoints.push({nextDir: DIR_BAS, px: centipede[i].boite.x});
+			seg++;
+		    }
+		}
 		break;
 	    case DIR_DROITE:
 		centipede[i].boite.x += centipede[i].vitesse * dt;
+		var goDown = centipede[i].boite.x >= 480 - LARGEUR_CHAMPI;
+		if (!goDown) {
+		    for(var ch =0 ; ch < champis.length ; ch++) {
+			if (champis[ch].boite.x > centipede[i].boite.x && collision(centipede[i],champis[ch])) {
+			    goDown = true;
+			    break;
+			}
+		    }
+		}
+		if (goDown) {
+		    centipede[i].debutVertical = centipede[i].boite.y;
+		    centipede[i].ancienneDir = DIR_DROITE;
+		    centipede[i].direction = DIR_BAS;
+		    var seg = i+1;
+		    while (seg < centipede.length && centipede[seg].etat == 2) {
+			centipede[seg].checkpoints.push({nextDir: DIR_BAS, px: centipede[i].boite.x});
+			seg++;
+		    }
+		}
 		break;
 	}
 	/*if (centipede[i].direction == DIR_HAUT || centipede[i].direction == DIR_BAS)
