@@ -59,7 +59,9 @@ initCentipede = function() {
 	centipede[0] = {
 	  etat: 1,
 	  vitesse: 0.05,
-	  direction: DIR_DROITE,
+	  direction: DIR_BAS,
+	  debutVertical: -LARGEUR_CHAMPI,
+	  ancienneDir: DIR_GAUCHE,
 	  boite: {
 	    x: 6*LARGEUR_CHAMPI,
 	    y: 0,
@@ -73,7 +75,8 @@ initCentipede = function() {
 	    etat: 2,
 	    vitesse: 0.05,
 	    direction: 1,
-	    checkpoints: [{nextDir:DIR_DROITE, px: 0}],
+	    //checkpoints: [{nextDir:DIR_DROITE, px: 0}],
+	    checkpoints: [],
 	    boite: {
 	      x: 6*LARGEUR_CHAMPI,
 	      y: -seg*LARGEUR_CHAMPI,
@@ -291,10 +294,41 @@ function avancementCentipedes() {
   for (var i=0 ; i<centipede.length ; i++) {
     switch (centipede[i].etat) {
       case 1: // Tête qui fonce comme elle peut
-	if (centipede[i].direction == DIR_HAUT || centipede[i].direction == DIR_BAS)
+	switch (centipede[i].direction) {
+	    case DIR_HAUT:
+		centipede[i].boite.y -= centipede[i].vitesse * dt;
+		if (centipede[i].boite.y <= centipede[i].debutVertical-HAUTEUR_CHAMPI) {
+		    centipede[i].direction = (centipede[i].ancienneDir==DIR_GAUCHE)?DIR_DROITE:DIR_GAUCHE;
+		    centipede[i].boite.y = centipede[i].debutVertical-HAUTEUR_CHAMPI;
+		}
+		break;
+	    case DIR_BAS:
+		centipede[i].boite.y += centipede[i].vitesse * dt;
+		if (centipede[i].boite.y >= centipede[i].debutVertical+HAUTEUR_CHAMPI) {
+		    centipede[i].direction = (centipede[i].ancienneDir==DIR_GAUCHE)?DIR_DROITE:DIR_GAUCHE;
+		    console.log("La tête va de " + centipede[i].ancienneDir + " et tourne à " + centipede[i].direction + ".");
+		    centipede[i].boite.y = centipede[i].debutVertical+HAUTEUR_CHAMPI;
+		    var seg = i+1;
+		    while (seg < centipede.length && centipede[seg].etat == 2) {
+			centipede[seg].checkpoints.push({nextDir: centipede[i].direction, px: centipede[i].boite.y});
+			console.log("Pushed!");
+			seg++;
+		    }
+
+		}
+		break;
+	    case DIR_GAUCHE:
+		centipede[i].boite.x -= centipede[i].vitesse * dt;
+		
+		break;
+	    case DIR_DROITE:
+		centipede[i].boite.x += centipede[i].vitesse * dt;
+		break;
+	}
+	/*if (centipede[i].direction == DIR_HAUT || centipede[i].direction == DIR_BAS)
 	  centipede[i].boite.y += (centipede[i].direction*2-1) * centipede[i].vitesse * dt;
 	else
-	  centipede[i].boite.x += ((centipede[i].direction-2)*2-1) * centipede[i].vitesse * dt;
+	  centipede[i].boite.x += ((centipede[i].direction-2)*2-1) * centipede[i].vitesse * dt;*/
 	break;
       case 2: // Segment qui suit ses checkpoints
 	/*if (centipede[i].direction == DIR_HAUT || centipede[i].direction == DIR_BAS) {
@@ -306,6 +340,7 @@ function avancementCentipedes() {
 	  case DIR_HAUT:
 	    centipede[i].boite.y -= centipede[i].vitesse*dt;
 	    if (centipede[i].checkpoints.length && centipede[i].boite.y <= centipede[i].checkpoints[0].px) {
+	      console.log("Checkpoint dans DIR_HAUT ! "+centipede[i].checkpoints[0].px+"px vers " +centipede[i].checkpoints[0].nextDir);
 	      centipede[i].boite.y = centipede[i].checkpoints[0].px;
 	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
 	    }
@@ -313,6 +348,7 @@ function avancementCentipedes() {
 	  case DIR_BAS:
 	    centipede[i].boite.y += centipede[i].vitesse*dt;
 	    if (centipede[i].checkpoints.length && centipede[i].boite.y >= centipede[i].checkpoints[0].px) {
+	      console.log("Checkpoint dans DIR_BAS ! "+centipede[i].checkpoints[0].px+"px vers " +centipede[i].checkpoints[0].nextDir);
 	      centipede[i].boite.y = centipede[i].checkpoints[0].px;
 	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
 	    }
@@ -320,6 +356,7 @@ function avancementCentipedes() {
 	  case DIR_GAUCHE:
 	    centipede[i].boite.x -= centipede[i].vitesse*dt;
 	    if (centipede[i].checkpoints.length && centipede[i].boite.x <= centipede[i].checkpoints[0].px) {
+	      console.log("Checkpoint dans DIR_GAUCHE ! "+centipede[i].checkpoints[0].px+"px vers " +centipede[i].checkpoints[0].nextDir);
 	      centipede[i].boite.x = centipede[i].checkpoints[0].px;
 	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
 	    }
@@ -327,6 +364,7 @@ function avancementCentipedes() {
 	  case DIR_DROITE:
 	    centipede[i].boite.x += centipede[i].vitesse*dt;
 	    if (centipede[i].checkpoints.length && centipede[i].boite.x >= centipede[i].checkpoints[0].px) {
+	      console.log("Checkpoint dans DIR_DROITE ! "+centipede[i].checkpoints[0].px+"px vers " +centipede[i].checkpoints[0].nextDir);
 	      centipede[i].boite.x = centipede[i].checkpoints[0].px;
 	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
 	    }
@@ -429,13 +467,25 @@ function detruireSegment(index)
 	    var seg = index+2;
 	    if (centipede[index].etat == 2) {
 	      while (seg < centipede.length && centipede[seg].etat == 2) {
-		for (var ch = 0 ; ch < centipede[index].checkpoints.length ; ch++) {
-		  centipede[seg].checkpoints.pop();
+		//console.log(centipede[index+1].checkpoints.length, " checkpoints supprimés pour le segment " + seg +" qui en avait " + centipede[seg].checkpoints.length + ".");
+		for (var ch = 0 ; ch < centipede[index+1].checkpoints.length ; ch++) {
+		  //console.log("SHIFTING");
+		  centipede[seg].checkpoints.shift();
 		}
+		//console.log("Maintenant " + centipede[seg].checkpoints.length + ".");
 		seg++;
 	      }
 	    }
 	    centipede[index+1].checkpoints = null;
+	    if (centipede[index+1].direction == DIR_BAS)
+		centipede[index+1].debutVertical = centipede[index+1].boite.y-centipede[index+1].boite.y%HAUTEUR_CHAMPI;
+	    else if (centipede[index+1].direction == DIR_HAUT)
+		centipede[index+1].debutVertical = centipede[index+1].boite.y-centipede[index+1].boite.y%HAUTEUR_CHAMPI + HAUTEUR_CHAMPI;
+	    else
+		centipede[index+1].debutVertical = 0;
+	    
+	    centipede[index+1].ancienneDir = centipede[index].ancienneDir || centipede[index].direction;
+
 	}
     }
     centipede[index].etat = 0;
