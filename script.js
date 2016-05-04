@@ -60,7 +60,7 @@ initCentipede = function() {
       imgCorpsCenti.onload = function () {
 	centipede[0] = {
 	  etat: 1,
-	  vitesse: 0.2,
+	  vitesse: 0.40,
 	  direction: DIR_BAS,
 	  debutVertical: -TAILLE_BLOC,
 	  ancienneDir: DIR_GAUCHE,
@@ -72,10 +72,10 @@ initCentipede = function() {
 	    img: imgTeteCenti
 	  }
 	};
-	for (var seg=1 ; seg<120 ; seg++) {
+	for (var seg=1 ; seg<12; seg++) {
 	  centipede[seg] = {
 	    etat: 2,
-	    vitesse: 0.2,
+	    vitesse: 0.40,
 	    direction: 1,
 	    //checkpoints: [{nextDir:DIR_DROITE, px: 0}],
 	    checkpoints: [],
@@ -101,7 +101,7 @@ initTir = function()
 	{
 		boite: {x: 0, y:0, w:5, h:15 , col:"#FE0101"},
 		actif: false,
-		vitesse: 0.85,		
+		vitesse: 0.95,		
 	};
 	initCentipede();
 }
@@ -139,7 +139,7 @@ initJoueur = function() {
         joueur = {
           boite: {x: (cnv.width-TAILLE_BLOC)/2, y: cnv.height-TAILLE_BLOC, w: TAILLE_BLOC, h: TAILLE_BLOC, img: playerImg},
           vies: 2,
-          vitesse: 0.1
+          vitesse: 0.2
         };
         //console.log("Joueur initialisé !");
         initChampignons(1,1);
@@ -186,6 +186,9 @@ update = function(d) {
 	updateTir();
     avancementCentipedes();
 	drawScore();
+	drawText();
+	dead();
+	centiChampi();
 }
 
 
@@ -215,6 +218,37 @@ render = function() {
 /////////////////////
 // Sous-fonctions //
 ///////////////////
+
+function dead()
+{
+	for(var i =0 ; i < centipede.length;i++)
+	{	
+		
+		if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC))
+		{
+			// update = function()
+			// {
+				
+				
+			// }
+			render = function()
+			{
+				drawText();
+				
+			}
+		}
+	}
+	
+}
+function drawText() {
+var gradient=ctx.createLinearGradient(0,0,0,0);
+gradient.addColorStop("0","magenta");
+gradient.addColorStop("0.5","blue");
+gradient.addColorStop("1.0","red");
+// Fill with gradient
+ctx.fillStyle=gradient;
+ctx.fillText("Vous etes mort",01,25);
+}
 function drawScore() {
     ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#FF0000";
@@ -249,6 +283,7 @@ function updateTir()
 				detruireSegment(i);
 				tir.actif=false;
 				break;
+				//centiChampi(champis);
 			}
 		}
 			
@@ -472,7 +507,14 @@ function creerChampi() {
     estVeneneux: false
   };
 }
+function centiChampi() {
+	var nouvChampiX, nouvChampiY;
 
+    nouvChampiX = Math.floor(Math.random()*LARGEUR_GRILLE)*TAILLE_BLOC;
+    nouvChampiY = TAILLE_BLOC + Math.floor(Math.random()*(HAUTEUR_GRILLE-1))*TAILLE_BLOC;
+	
+
+}
 /**
 * Fonction qui test la collision entre deux objets
 */
