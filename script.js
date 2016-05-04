@@ -187,7 +187,7 @@ update = function(d) {
     avancementCentipedes();
 	drawScore();
 	drawText();
-	dead();
+	testMort();
 	centiChampi();
 }
 
@@ -219,7 +219,7 @@ render = function() {
 // Sous-fonctions //
 ///////////////////
 
-function dead()
+function testMort()
 {
 	for(var i =0 ; i < centipede.length;i++)
 	{	
@@ -247,7 +247,7 @@ gradient.addColorStop("0.5","blue");
 gradient.addColorStop("1.0","red");
 // Fill with gradient
 ctx.fillStyle=gradient;
-ctx.fillText("Vous etes mort",01,25);
+ctx.fillText("Vous etes mort",05,30);
 }
 function drawScore() {
     ctx.font = "bold 30px Arial";
