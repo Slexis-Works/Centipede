@@ -186,7 +186,7 @@ update = function(d) {
 	updateTir();
     avancementCentipedes();
 	drawScore();
-	drawText();
+	drawTextDead();
 	testMort();
 	centiChampi();
 }
@@ -233,21 +233,31 @@ function testMort()
 			// }
 			render = function()
 			{
-				drawText();
+				drawTextDead();
 				
 			}
 		}
 	}
 	
 }
-function drawText() {
-var gradient=ctx.createLinearGradient(0,0,0,0);
+
+//text centré
+drawCenterText = function(text, y)
+{
+	var textdim = ctx.measureText(text);
+	ctx.fillText(text, (TAILLE_ECRAN-textdim.width)/2, y);
+}
+
+function drawTextDead() {
+var gradient=ctx.createLinearGradient(0,100,0,0);
 gradient.addColorStop("0","magenta");
 gradient.addColorStop("0.5","blue");
 gradient.addColorStop("1.0","red");
 // Fill with gradient
 ctx.fillStyle=gradient;
-ctx.fillText("Vous etes mort",05,30);
+drawCenterText("Vous êtes mort",250);
+drawCenterText(" <=> YOU SUCK DUDE !",280);
+drawCenterText(" <=> TRY AGAIN!",310);
 }
 function drawScore() {
     ctx.font = "bold 30px Arial";
