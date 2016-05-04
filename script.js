@@ -72,7 +72,7 @@ initCentipede = function() {
 	    img: imgTeteCenti
 	  }
 	};
-	for (var seg=1 ; seg<12 ; seg++) {
+	for (var seg=1 ; seg<120 ; seg++) {
 	  centipede[seg] = {
 	    etat: 2,
 	    vitesse: 0.2,
