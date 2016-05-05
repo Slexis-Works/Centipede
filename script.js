@@ -60,7 +60,7 @@ initCentipede = function() {
       imgCorpsCenti.onload = function () {
 	centipede[0] = {
 	  etat: 1,
-	  vitesse: 0.40,
+	  vitesse: 0.05, // 0.40
 	  direction: DIR_BAS,
 	  debutVertical: -TAILLE_BLOC,
 	  ancienneDir: DIR_GAUCHE,
@@ -434,17 +434,76 @@ function avanceTete(i, dp) { // Gestion récursive du deltaPos (>0) en trop
     case DIR_BAS:
       if (centipede[i].boite.y + dp >= centipede[i].debutVertical+TAILLE_BLOC) {
 	dp -= centipede[i].debutVertical+TAILLE_BLOC - centipede[i].boite.y;
-	centipede[i].boite.y + dp >= centipede[i].debutVertical+TAILLE_BLOC;
+	centipede[i].boite.y = centipede[i].debutVertical+TAILLE_BLOC;
+	centipede[i].direction = (centipede[i].ancienneDir==DIR_GAUCHE)?DIR_DROITE:DIR_GAUCHE;
+	//centipede[i].direction = DIR_GAUCHE;
+	
       } else
 	centipede[i].boite.y += dp;
 	dp = 0; // Assez avancé
       // Gen checkpoints
       break;
+    case DIR_GAUCHE:
+      centipede[i].boite.x -= dp;
+      var goDown = centipede[i].boite.x < 0,
+	  ch = champis.length;
+      if (!goDown) {
+	for(ch = 0 ; ch < champis.length ; ch++) {
+	  if (champis[ch].boite.x < centipede[i].boite.x && collision(centipede[i],champis[ch])) {
+	    goDown = true;
+	    break;
+	  }
+	}
+      }
+      if (goDown) {
+	centipede[i].debutVertical = centipede[i].boite.y;
+	centipede[i].ancienneDir = DIR_GAUCHE;
+	centipede[i].direction = DIR_BAS;
+	if (ch < champis.length) {
+	  dp = champis[ch].boite.x + TAILLE_BLOC - centipede[i].boite.x
+	  centipede[i].boite.x = champis[ch].boite.x + TAILLE_BLOC;
+	} else {
+	  dp = - centipede[i].boite.x
+	  centipede[i].boite.x = 0;
+	}
+      } else {
+	dp = 0;
+      }
+      break;
+    case DIR_DROITE:
+      centipede[i].boite.x += dp;
+      var goDown = centipede[i].boite.x >= 480 - TAILLE_BLOC,
+	  ch = champis.length;
+      if (!goDown) {
+	for(ch = 0 ; ch < champis.length ; ch++) {
+	  if (champis[ch].boite.x > centipede[i].boite.x && collision(centipede[i],champis[ch])) {
+	    goDown = true;
+	    break;
+	  }
+	}
+      }
+      if (goDown) {
+	centipede[i].debutVertical = centipede[i].boite.y;
+	centipede[i].ancienneDir = DIR_DROITE;
+	centipede[i].direction = DIR_BAS;
+	if (ch < champis.length) {
+	  dp = centipede[i].boite.x + TAILLE_BLOC - champis[ch].boite.x;
+	  centipede[i].boite.x = champis[ch].boite.x - TAILLE_BLOC;
+	} else {
+	  dp = centipede[i].boite.x + TAILLE_BLOC - 480;
+	  centipede[i].boite.x = 480 - TAILLE_BLOC;
+	}
+      } else {
+	dp = 0;
+      }
+      break;
     default:
       dp = 0;
   }
-  if (dp > 0)
+  if (dp > 0) {
+    //console.log("Relaunch!");
     avanceTete(i, dp);
+  }
 }
 
 //Avec Z,Q,S,Date
@@ -574,6 +633,19 @@ function detruireSegment(index)
     centipede[index].etat = 0;
 }
 
+/**
+ * Retourne l'index de la tête associée au segment
+ */
+function getHead(seg) {
+  while (seg >= 0 && centipede[seg].etat == 2)
+    seg--;
+  if (seg < 0 || centipede[seg].etat != 1)
+    return -1;
+  else
+    return seg;
+}
+
+// Affichage
 
 function dessineBoite(obj) {
     //console.log(obj);
