@@ -65,8 +65,8 @@ initCentipede = function() {
 	  debutVertical: -TAILLE_BLOC,
 	  ancienneDir: DIR_GAUCHE,
 	  boite: {
-	    x: 6*TAILLE_BLOC,
-	    y: 0,
+	    x: TAILLE_BLOC*Math.floor(LARGEUR_GRILLE/2),
+	    y: -TAILLE_BLOC,
 	    w: TAILLE_BLOC,
 	    h: TAILLE_BLOC,
 	    img: imgTeteCenti
@@ -353,7 +353,8 @@ function avancementCentipedes() {
   for (var i=0 ; i<centipede.length ; i++) {
     switch (centipede[i].etat) {
       case 1: // Tête qui fonce comme elle peut
-	switch (centipede[i].direction) {
+	avanceTete(i, centipede[i].vitesse * dt);
+	/*switch (centipede[i].direction) {
 	    case DIR_HAUT:
 		centipede[i].boite.y -= centipede[i].vitesse * dt;
 		if (centipede[i].boite.y <= centipede[i].debutVertical-TAILLE_BLOC) {
@@ -419,55 +420,31 @@ function avancementCentipedes() {
 		    }
 		}
 		break;
-	}
-	/*if (centipede[i].direction == DIR_HAUT || centipede[i].direction == DIR_BAS)
-	  centipede[i].boite.y += (centipede[i].direction*2-1) * centipede[i].vitesse * dt;
-	else
-	  centipede[i].boite.x += ((centipede[i].direction-2)*2-1) * centipede[i].vitesse * dt;*/
+	}*/
 	break;
       case 2: // Segment qui suit ses checkpoints
-	/*if (centipede[i].direction == DIR_HAUT || centipede[i].direction == DIR_BAS) {
-	  centipede[i].boite.y += (centipede[i].direction*2-1) * centipede[i].vitesse * dt;
-	} else {
-	  centipede[i].boite.x += ((centipede[i].direction-2)*2-1) * centipede[i].vitesse * dt;
-	}*/
-	switch (centipede[i].direction) {
-	  case DIR_HAUT:
-	    centipede[i].boite.y -= centipede[i].vitesse*dt;
-	    if (centipede[i].checkpoints.length && centipede[i].boite.y <= centipede[i].checkpoints[0].px) {
-	      //console.log("Checkpoint dans DIR_HAUT ! "+centipede[i].checkpoints[0].px+"px vers " +centipede[i].checkpoints[0].nextDir);
-	      centipede[i].boite.y = centipede[i].checkpoints[0].px;
-	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
-	    }
-	    break;
-	  case DIR_BAS:
-	    centipede[i].boite.y += centipede[i].vitesse*dt;
-	    if (centipede[i].checkpoints.length && centipede[i].boite.y >= centipede[i].checkpoints[0].px) {
-	      //console.log("Checkpoint dans DIR_BAS ! "+centipede[i].checkpoints[0].px+"px vers " +centipede[i].checkpoints[0].nextDir);
-	      centipede[i].boite.y = centipede[i].checkpoints[0].px;
-	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
-	    }
-	    break;
-	  case DIR_GAUCHE:
-	    centipede[i].boite.x -= centipede[i].vitesse*dt;
-	    if (centipede[i].checkpoints.length && centipede[i].boite.x <= centipede[i].checkpoints[0].px) {
-	      //console.log("Checkpoint dans DIR_GAUCHE ! "+centipede[i].checkpoints[0].px+"px vers " +centipede[i].checkpoints[0].nextDir);
-	      centipede[i].boite.x = centipede[i].checkpoints[0].px;
-	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
-	    }
-	    break;
-	  case DIR_DROITE:
-	    centipede[i].boite.x += centipede[i].vitesse*dt;
-	    if (centipede[i].checkpoints.length && centipede[i].boite.x >= centipede[i].checkpoints[0].px) {
-	      //console.log("Checkpoint dans DIR_DROITE ! "+centipede[i].checkpoints[0].px+"px vers " +centipede[i].checkpoints[0].nextDir);
-	      centipede[i].boite.x = centipede[i].checkpoints[0].px;
-	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
-	    }
-	    break;
-	}
+	// À voir
 	break;
     }
   }
+}
+
+function avanceTete(i, dp) { // Gestion récursive du deltaPos (>0) en trop
+  switch (centipede[i].direction) {
+    case DIR_BAS:
+      if (centipede[i].boite.y + dp >= centipede[i].debutVertical+TAILLE_BLOC) {
+	dp -= centipede[i].debutVertical+TAILLE_BLOC - centipede[i].boite.y;
+	centipede[i].boite.y + dp >= centipede[i].debutVertical+TAILLE_BLOC;
+      } else
+	centipede[i].boite.y += dp;
+	dp = 0; // Assez avancé
+      // Gen checkpoints
+      break;
+    default:
+      dp = 0;
+  }
+  if (dp > 0)
+    avanceTete(i, dp);
 }
 
 //Avec Z,Q,S,Date
