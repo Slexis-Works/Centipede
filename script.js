@@ -358,76 +358,7 @@ function avancementCentipedes() {
 				iTete = i;
 				curCP = 0;
 				break;
-	/*switch (centipede[i].direction) {
-	    case DIR_HAUT:
-		centipede[i].boite.y -= centipede[i].vitesse * dt;
-		if (centipede[i].boite.y <= centipede[i].debutVertical-TAILLE_BLOC) {
-		    centipede[i].direction = (centipede[i].ancienneDir==DIR_GAUCHE)?DIR_DROITE:DIR_GAUCHE;
-		    centipede[i].boite.y = centipede[i].debutVertical-TAILLE_BLOC;
-		}
-		break;
-	    case DIR_BAS:
-		centipede[i].boite.y += centipede[i].vitesse * dt;
-		if (centipede[i].boite.y >= centipede[i].debutVertical+TAILLE_BLOC) {
-		    centipede[i].direction = (centipede[i].ancienneDir==DIR_GAUCHE)?DIR_DROITE:DIR_GAUCHE;
-		    //console.log("La tête va de " + centipede[i].ancienneDir + " et tourne à " + centipede[i].direction + ".");
-		    centipede[i].boite.y = centipede[i].debutVertical+TAILLE_BLOC;
-		    var seg = i+1;
-		    while (seg < centipede.length && centipede[seg].etat == 2) {
-			centipede[seg].checkpoints.push({nextDir: centipede[i].direction, px: centipede[i].boite.y});
-			seg++;
-		    }
-
-		}
-		break;
-	    case DIR_GAUCHE:
-		centipede[i].boite.x -= centipede[i].vitesse * dt;
-		var goDown = centipede[i].boite.x < 0;
-		if (!goDown) {
-		    for(var ch =0 ; ch < champis.length ; ch++) {
-			if (champis[ch].boite.x < centipede[i].boite.x && collision(centipede[i],champis[ch])) {
-			    goDown = true;
-			    break;
-			}
-		    }
-		}
-		if (goDown) {
-		    centipede[i].debutVertical = centipede[i].boite.y;
-		    centipede[i].ancienneDir = DIR_GAUCHE;
-		    centipede[i].direction = DIR_BAS;
-		    var seg = i+1;
-		    while (seg < centipede.length && centipede[seg].etat == 2) {
-			centipede[seg].checkpoints.push({nextDir: DIR_BAS, px: centipede[i].boite.x});
-			seg++;
-		    }
-		}
-		break;
-	    case DIR_DROITE:
-		centipede[i].boite.x += centipede[i].vitesse * dt;
-		var goDown = centipede[i].boite.x >= 480 - TAILLE_BLOC;
-		if (!goDown) {
-		    for(var ch =0 ; ch < champis.length ; ch++) {
-			if (champis[ch].boite.x > centipede[i].boite.x && collision(centipede[i],champis[ch])) {
-			    goDown = true;
-			    break;
-			}
-		    }
-		}
-		if (goDown) {
-		    centipede[i].debutVertical = centipede[i].boite.y;
-		    centipede[i].ancienneDir = DIR_DROITE;
-		    centipede[i].direction = DIR_BAS;
-		    var seg = i+1;
-		    while (seg < centipede.length && centipede[seg].etat == 2) {
-			centipede[seg].checkpoints.push({nextDir: DIR_BAS, px: centipede[i].boite.x});
-			seg++;
-		    }
-		}
-		break;
-	}*/
-				break;
 			case 2: // Segment déduit depuis la tête et ses checkpoints
-				// À voir
 				centipede[i].direction = centipede[i-1].direction;
 				centipede[i].boite.x = centipede[i-1].boite.x;
 				centipede[i].boite.y = centipede[i-1].boite.y;
@@ -438,99 +369,118 @@ function avancementCentipedes() {
 }
 
 function avanceTete(i, dp) { // Gestion récursive du deltaPos (>0) en trop
-  switch (centipede[i].direction) {
-    case DIR_BAS:
-      if (centipede[i].boite.y + dp >= centipede[i].debutVertical+TAILLE_BLOC) {
-	dp -= centipede[i].debutVertical+TAILLE_BLOC - centipede[i].boite.y;
-	centipede[i].boite.y = centipede[i].debutVertical+TAILLE_BLOC;
-	centipede[i].direction = (centipede[i].ancienneDir==DIR_GAUCHE)?DIR_DROITE:DIR_GAUCHE;
-	//centipede[i].direction = DIR_GAUCHE;
-	
-      } else
-	centipede[i].boite.y += dp;
-	dp = 0; // Assez avancé
-      // Gen checkpoints
-      break;
-    case DIR_GAUCHE:
-      centipede[i].boite.x -= dp;
-      var goDown = centipede[i].boite.x < 0,
-	  ch = champis.length;
-      if (!goDown) {
-	for(ch = 0 ; ch < champis.length ; ch++) {
-	  if (champis[ch].boite.x < centipede[i].boite.x && collision(centipede[i],champis[ch])) {
-	    goDown = true;
-	    break;
-	  }
+	switch (centipede[i].direction) {
+		case DIR_BAS:
+			if (centipede[i].boite.y + dp >= centipede[i].debutVertical+TAILLE_BLOC) {
+				dp -= centipede[i].debutVertical+TAILLE_BLOC - centipede[i].boite.y;
+				centipede[i].boite.y = centipede[i].debutVertical+TAILLE_BLOC;
+				centipede[i].direction = (centipede[i].ancienneDir==DIR_GAUCHE)?DIR_DROITE:DIR_GAUCHE;
+				//centipede[i].direction = DIR_GAUCHE;
+				centipede[i].checkpoints.unshift({x: centipede[i].boite.x, y: centipede[i].boite.y, dir: DIR_BAS});
+			} else
+				centipede[i].boite.y += dp;
+			dp = 0; // Assez avancé
+			// Gen checkpoints
+			break;
+		case DIR_GAUCHE:
+			centipede[i].boite.x -= dp;
+			var goDown = centipede[i].boite.x < 0,
+			ch = champis.length;
+			if (!goDown) {
+				for(ch = 0 ; ch < champis.length ; ch++) {
+					if (champis[ch].boite.x < centipede[i].boite.x && collision(centipede[i],champis[ch])) {
+						goDown = true;
+						break;
+					}
+				}
+			}
+			if (goDown) {
+				centipede[i].debutVertical = centipede[i].boite.y;
+				centipede[i].ancienneDir = DIR_GAUCHE;
+				centipede[i].direction = DIR_BAS;
+				if (ch < champis.length) {
+					dp = champis[ch].boite.x + TAILLE_BLOC - centipede[i].boite.x
+					centipede[i].boite.x = champis[ch].boite.x + TAILLE_BLOC;
+				} else {
+					dp = - centipede[i].boite.x
+					centipede[i].boite.x = 0;
+				}
+				centipede[i].checkpoints.unshift({x: centipede[i].boite.x, y: centipede[i].boite.y, dir: DIR_GAUCHE});
+			} else {
+				dp = 0;
+			}
+			break;
+		case DIR_DROITE:
+			centipede[i].boite.x += dp;
+			var goDown = centipede[i].boite.x >= 480 - TAILLE_BLOC,
+			ch = champis.length;
+			if (!goDown) {
+				for(ch = 0 ; ch < champis.length ; ch++) {
+					if (champis[ch].boite.x > centipede[i].boite.x && collision(centipede[i],champis[ch])) {
+						goDown = true;
+						break;
+					}
+				}
+			}
+			if (goDown) {
+				centipede[i].debutVertical = centipede[i].boite.y;
+				centipede[i].ancienneDir = DIR_DROITE;
+				centipede[i].direction = DIR_BAS;
+				if (ch < champis.length) {
+					dp = centipede[i].boite.x + TAILLE_BLOC - champis[ch].boite.x;
+					centipede[i].boite.x = champis[ch].boite.x - TAILLE_BLOC;
+				} else {
+					dp = centipede[i].boite.x + TAILLE_BLOC - 480;
+					centipede[i].boite.x = 480 - TAILLE_BLOC;
+				}
+				centipede[i].checkpoints.unshift({x: centipede[i].boite.x, y: centipede[i].boite.y, dir: DIR_DROITE});
+			} else {
+				dp = 0;
+			}
+			break;
+		default:
+			dp = 0;
 	}
-      }
-      if (goDown) {
-	centipede[i].debutVertical = centipede[i].boite.y;
-	centipede[i].ancienneDir = DIR_GAUCHE;
-	centipede[i].direction = DIR_BAS;
-	if (ch < champis.length) {
-	  dp = champis[ch].boite.x + TAILLE_BLOC - centipede[i].boite.x
-	  centipede[i].boite.x = champis[ch].boite.x + TAILLE_BLOC;
-	} else {
-	  dp = - centipede[i].boite.x
-	  centipede[i].boite.x = 0;
+	if (dp > 0) {
+		//console.log("Relaunch!");
+		avanceTete(i, dp);
 	}
-      } else {
-	dp = 0;
-      }
-      break;
-    case DIR_DROITE:
-      centipede[i].boite.x += dp;
-      var goDown = centipede[i].boite.x >= 480 - TAILLE_BLOC,
-	  ch = champis.length;
-      if (!goDown) {
-	for(ch = 0 ; ch < champis.length ; ch++) {
-	  if (champis[ch].boite.x > centipede[i].boite.x && collision(centipede[i],champis[ch])) {
-	    goDown = true;
-	    break;
-	  }
-	}
-      }
-      if (goDown) {
-	centipede[i].debutVertical = centipede[i].boite.y;
-	centipede[i].ancienneDir = DIR_DROITE;
-	centipede[i].direction = DIR_BAS;
-	if (ch < champis.length) {
-	  dp = centipede[i].boite.x + TAILLE_BLOC - champis[ch].boite.x;
-	  centipede[i].boite.x = champis[ch].boite.x - TAILLE_BLOC;
-	} else {
-	  dp = centipede[i].boite.x + TAILLE_BLOC - 480;
-	  centipede[i].boite.x = 480 - TAILLE_BLOC;
-	}
-      } else {
-	dp = 0;
-      }
-      break;
-    default:
-      dp = 0;
-  }
-  if (dp > 0) {
-    //console.log("Relaunch!");
-    avanceTete(i, dp);
-  }
 }
 
-function placementSegment(i, tete, cp, dp) {
+function placementSegment(i, tete, iCP, dp) {
+	var testCP = iCP < centipede[tete].checkpoints.length,
+		applyCP = false,
+		cp = centipede[tete].checkpoints[iCP];
 	switch (centipede[i].direction) {
 		case DIR_HAUT:
 			centipede[i].boite.y += dp;
+			applyCP = testCP && centipede[i].boite.y > cp.y;
 			break;
 		case DIR_BAS:
 			centipede[i].boite.y -= dp;
+			applyCP = testCP && centipede[i].boite.y < cp.y;
 			break;
 		case DIR_GAUCHE:
 			centipede[i].boite.x += dp;
+			applyCP = testCP && centipede[i].boite.x > cp.x;
 			break;
 		case DIR_DROITE:
 			centipede[i].boite.x -= dp;
+			applyCP = testCP && centipede[i].boite.x < cp.x;
 			break;
-		
 	}
-	return cp;
+	if (applyCP) {
+		dp = Math.abs(centipede[i].boite.x - cp.x) + Math.abs(centipede[i].boite.y - cp.y);
+		centipede[i].boite.x = cp.x;
+		centipede[i].boite.y = cp.y;
+		centipede[i].direction = cp.dir;
+		iCP++;
+		if (dp > 0) {
+			console.log("Replacing segment ", i, " for ", TAILLE_BLOC - dp, "px");
+			iCP = placementSegment(i, tete, iCP, dp);
+		}
+	}
+	return iCP;
 }
 
 //Avec Z,Q,S,Date
