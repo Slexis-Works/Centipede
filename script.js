@@ -56,21 +56,22 @@ initLancement = function() {
 initCentipede = function() {
     imgTeteCenti = new Image();
     imgTeteCenti.onload = function() {
-      imgCorpsCenti = new Image();
-      imgCorpsCenti.onload = function () {
+	imgCorpsCenti = new Image();
+	imgCorpsCenti.onload = function () {
 	centipede[0] = {
-	  etat: 1,
-	  vitesse: 0.05, // 0.40
-	  direction: DIR_BAS,
-	  debutVertical: -TAILLE_BLOC,
-	  ancienneDir: DIR_GAUCHE,
-	  boite: {
-	    x: TAILLE_BLOC*Math.floor(LARGEUR_GRILLE/2),
-	    y: -TAILLE_BLOC,
-	    w: TAILLE_BLOC,
-	    h: TAILLE_BLOC,
-	    img: imgTeteCenti
-	  }
+		etat: 1,
+		vitesse: 0.05, // 0.40
+		direction: DIR_BAS,
+		debutVertical: -TAILLE_BLOC,
+		ancienneDir: DIR_GAUCHE,
+		checkpoints: [],
+		boite: {
+			x: TAILLE_BLOC*Math.floor(LARGEUR_GRILLE/2),
+			y: -TAILLE_BLOC,
+			w: TAILLE_BLOC,
+			h: TAILLE_BLOC,
+			img: imgTeteCenti
+		}
 	};
 	for (var seg=1 ; seg<12; seg++) {
 	  centipede[seg] = {
@@ -78,7 +79,6 @@ initCentipede = function() {
 	    vitesse: 0.40,
 	    direction: 1,
 	    //checkpoints: [{nextDir:DIR_DROITE, px: 0}],
-	    checkpoints: [],
 	    boite: {
 	      x: 6*TAILLE_BLOC,
 	      y: -seg*TAILLE_BLOC,
@@ -350,10 +350,14 @@ function deplacementPersonnage()
 }
 
 function avancementCentipedes() {
-  for (var i=0 ; i<centipede.length ; i++) {
-    switch (centipede[i].etat) {
-      case 1: // Tête qui fonce comme elle peut
-	avanceTete(i, centipede[i].vitesse * dt);
+	var iTete, curCP;
+	for (var i=0 ; i<centipede.length ; i++) {
+		switch (centipede[i].etat) {
+			case 1: // Tête qui fonce comme elle peut
+				avanceTete(i, centipede[i].vitesse * dt);
+				iTete = i;
+				curCP = 0;
+				break;
 	/*switch (centipede[i].direction) {
 	    case DIR_HAUT:
 		centipede[i].boite.y -= centipede[i].vitesse * dt;
@@ -421,12 +425,16 @@ function avancementCentipedes() {
 		}
 		break;
 	}*/
-	break;
-      case 2: // Segment qui suit ses checkpoints
-	// À voir
-	break;
-    }
-  }
+				break;
+			case 2: // Segment déduit depuis la tête et ses checkpoints
+				// À voir
+				centipede[i].direction = centipede[i-1].direction;
+				centipede[i].boite.x = centipede[i-1].boite.x;
+				centipede[i].boite.y = centipede[i-1].boite.y;
+				curCP = placementSegment(i, iTete, curCP, TAILLE_BLOC);
+				break;
+		}
+	}
 }
 
 function avanceTete(i, dp) { // Gestion récursive du deltaPos (>0) en trop
@@ -504,6 +512,25 @@ function avanceTete(i, dp) { // Gestion récursive du deltaPos (>0) en trop
     //console.log("Relaunch!");
     avanceTete(i, dp);
   }
+}
+
+function placementSegment(i, tete, cp, dp) {
+	switch (centipede[i].direction) {
+		case DIR_HAUT:
+			centipede[i].boite.y += dp;
+			break;
+		case DIR_BAS:
+			centipede[i].boite.y -= dp;
+			break;
+		case DIR_GAUCHE:
+			centipede[i].boite.x += dp;
+			break;
+		case DIR_DROITE:
+			centipede[i].boite.x -= dp;
+			break;
+		
+	}
+	return cp;
 }
 
 //Avec Z,Q,S,Date
