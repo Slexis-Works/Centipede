@@ -48,7 +48,6 @@ initLancement = function() {
     // lancement de la boucle de jeu
     lastTime = Date.now();
 	score = 0;
-	niveau = 1;
     boucleDeJeu();
 	
 
@@ -56,29 +55,30 @@ initLancement = function() {
 initCentipede = function() {
     imgTeteCenti = new Image();
     imgTeteCenti.onload = function() {
-      imgCorpsCenti = new Image();
-      imgCorpsCenti.onload = function () {
+	imgCorpsCenti = new Image();
+	imgCorpsCenti.onload = function () {
 	centipede[0] = {
-	  etat: 1,
-	  vitesse: 0.40,
-	  direction: DIR_BAS,
-	  debutVertical: -TAILLE_BLOC,
-	  ancienneDir: DIR_GAUCHE,
-	  boite: {
-	    x: 6*TAILLE_BLOC,
-	    y: 0,
-	    w: TAILLE_BLOC,
-	    h: TAILLE_BLOC,
-	    img: imgTeteCenti
-	  }
+		etat: 1,
+		vitesse: 0.4,
+		direction: DIR_BAS,
+		debutVertical: -TAILLE_BLOC,
+		ancienneDirX: DIR_GAUCHE,
+		ancienneDirY: DIR_BAS,
+		checkpoints: [],
+		boite: {
+			x: TAILLE_BLOC*Math.floor(LARGEUR_GRILLE/2),
+			y: -TAILLE_BLOC,
+			w: TAILLE_BLOC,
+			h: TAILLE_BLOC,
+			img: imgTeteCenti
+		}
 	};
 	for (var seg=1 ; seg<12; seg++) {
 	  centipede[seg] = {
 	    etat: 2,
 	    vitesse: 0.40,
 	    direction: 1,
-	    //checkpoints: [{nextDir:DIR_DROITE, px: 0}],
-	    checkpoints: [],
+	    curCP: 0, // Checkpoint à traiter
 	    boite: {
 	      x: 6*TAILLE_BLOC,
 	      y: -seg*TAILLE_BLOC,
@@ -96,7 +96,6 @@ initCentipede = function() {
 }
 initTir = function()
 {
-	//console.log("Initialisation du tir...")
 	tir = 
 	{
 		boite: {x: 0, y:0, w:5, h:15 , col:"#FE0101"},
@@ -106,24 +105,18 @@ initTir = function()
 	initCentipede();
 }
 initChampignons = function(nbC, lvl) {
-    //console.log("Initialisation des champignons…");
 	var champisImg = new Image();
 	champisImg.onload = function () {
-		//console.debug("lvl="+lvl+" nbC="+nbC)
-		imgsChampis[lvl][nbC] = champisImg; // lvl nbc + modif init
+		imgsChampis[lvl][nbC] = champisImg;
 		if (nbC == 4) {
 			if(lvl == 5) 
 			{
 				nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
-				//console.log(nbChampis);
-
 				for (var i=0 ; i<nbChampis ; i++) {
 				  champis[i] = creerChampi(champis);
-				  champis[i].boite.img = imgsChampis[1][4];
+				  champis[i].boite.img = imgsChampis[niveau][4];
 				}
-				//console.log("Initialisation du tir");
 				initTir();
-				//console.log("Champignons initialisés !");
 			}else 
 				initChampignons(1, lvl +1);
 		} else
@@ -133,7 +126,6 @@ initChampignons = function(nbC, lvl) {
 }
 
 initJoueur = function() {
-    //console.log("Initialisation du joueur…");
     var playerImg = new Image();
     playerImg.onload = function() {
         joueur = {
@@ -141,7 +133,6 @@ initJoueur = function() {
           vies: 2,
           vitesse: 0.2
         };
-        //console.log("Joueur initialisé !");
         initChampignons(1,1);
     }
     playerImg.src = "imgs/Joueur.png";
@@ -160,6 +151,8 @@ init = function() {
     //document.addEventListener("click", captureClicSouris)
 
     // Initialisation des variables
+	niveau = 1; // creerChampi en a besoin
+
     initJoueur();
 	
 }
@@ -181,14 +174,12 @@ boucleDeJeu = function() {
  */
 update = function(d) {
     dt = d - lastTime;
-    lastTime = d;    
+    lastTime = d;
+
 	deplacementPersonnage();
 	updateTir();
     avancementCentipedes();
-	drawScore();
-	drawTextDead();
 	testMort();
-	centiChampi();
 }
 
 
@@ -203,15 +194,18 @@ render = function() {
     ctx.clearRect(0, 0, cnv.width, cnv.height);
     ctx.fillStyle="#002";
     ctx.fillRect(0, 0, cnv.width, cnv.height);
+	
+	// Affichage du jeu
 	drawScore(score);
+	//drawTextDead();
     dessineBoite(joueur);
     for (var i=0 ; i<champis.length ; i++)
         dessineBoite(champis[i]);
     if(tir.actif)
 	dessineBoite(tir);
     for (var i=0 ; i<centipede.length ; i++) {
-      if (centipede[i] != null && centipede[i].etat)
-	dessineBoite(centipede[i]);
+		if (centipede[i] != null && centipede[i].etat)
+			dessineBoite(centipede[i]);
     }
 }
 
@@ -293,7 +287,6 @@ function updateTir()
 				detruireSegment(i);
 				tir.actif=false;
 				break;
-				//centiChampi(champis);
 			}
 		}
 			
@@ -350,124 +343,189 @@ function deplacementPersonnage()
 }
 
 function avancementCentipedes() {
-  for (var i=0 ; i<centipede.length ; i++) {
-    switch (centipede[i].etat) {
-      case 1: // Tête qui fonce comme elle peut
-	switch (centipede[i].direction) {
-	    case DIR_HAUT:
-		centipede[i].boite.y -= centipede[i].vitesse * dt;
-		if (centipede[i].boite.y <= centipede[i].debutVertical-TAILLE_BLOC) {
-		    centipede[i].direction = (centipede[i].ancienneDir==DIR_GAUCHE)?DIR_DROITE:DIR_GAUCHE;
-		    centipede[i].boite.y = centipede[i].debutVertical-TAILLE_BLOC;
+	var iTete, curCP;
+	for (var i=0 ; i<centipede.length ; i++) {
+		switch (centipede[i].etat) {
+			case 1: // Tête qui fonce comme elle peut
+				avanceTete(i, centipede[i].vitesse * dt);
+				iTete = i;
+				curCP = 0;
+				break;
+			case 2: // Segment déduit depuis la tête et ses checkpoints
+				centipede[i].direction = centipede[i-1].direction;
+				centipede[i].boite.x = centipede[i-1].boite.x;
+				centipede[i].boite.y = centipede[i-1].boite.y;
+				curCP = placementSegment(i, iTete, curCP, TAILLE_BLOC);
+				centipede[i].curCP = curCP;
+				break;
 		}
-		break;
-	    case DIR_BAS:
-		centipede[i].boite.y += centipede[i].vitesse * dt;
-		if (centipede[i].boite.y >= centipede[i].debutVertical+TAILLE_BLOC) {
-		    centipede[i].direction = (centipede[i].ancienneDir==DIR_GAUCHE)?DIR_DROITE:DIR_GAUCHE;
-		    //console.log("La tête va de " + centipede[i].ancienneDir + " et tourne à " + centipede[i].direction + ".");
-		    centipede[i].boite.y = centipede[i].debutVertical+TAILLE_BLOC;
-		    var seg = i+1;
-		    while (seg < centipede.length && centipede[seg].etat == 2) {
-			centipede[seg].checkpoints.push({nextDir: centipede[i].direction, px: centipede[i].boite.y});
-			seg++;
-		    }
+	}
+}
 
-		}
-		break;
-	    case DIR_GAUCHE:
-		centipede[i].boite.x -= centipede[i].vitesse * dt;
-		var goDown = centipede[i].boite.x < 0;
-		if (!goDown) {
-		    for(var ch =0 ; ch < champis.length ; ch++) {
-			if (champis[ch].boite.x < centipede[i].boite.x && collision(centipede[i],champis[ch])) {
-			    goDown = true;
-			    break;
-			}
-		    }
-		}
-		if (goDown) {
-		    centipede[i].debutVertical = centipede[i].boite.y;
-		    centipede[i].ancienneDir = DIR_GAUCHE;
-		    centipede[i].direction = DIR_BAS;
-		    var seg = i+1;
-		    while (seg < centipede.length && centipede[seg].etat == 2) {
-			centipede[seg].checkpoints.push({nextDir: DIR_BAS, px: centipede[i].boite.x});
-			seg++;
-		    }
-		}
-		break;
-	    case DIR_DROITE:
-		centipede[i].boite.x += centipede[i].vitesse * dt;
-		var goDown = centipede[i].boite.x >= 480 - TAILLE_BLOC;
-		if (!goDown) {
-		    for(var ch =0 ; ch < champis.length ; ch++) {
-			if (champis[ch].boite.x > centipede[i].boite.x && collision(centipede[i],champis[ch])) {
-			    goDown = true;
-			    break;
-			}
-		    }
-		}
-		if (goDown) {
-		    centipede[i].debutVertical = centipede[i].boite.y;
-		    centipede[i].ancienneDir = DIR_DROITE;
-		    centipede[i].direction = DIR_BAS;
-		    var seg = i+1;
-		    while (seg < centipede.length && centipede[seg].etat == 2) {
-			centipede[seg].checkpoints.push({nextDir: DIR_BAS, px: centipede[i].boite.x});
-			seg++;
-		    }
-		}
-		break;
-	}
-	/*if (centipede[i].direction == DIR_HAUT || centipede[i].direction == DIR_BAS)
-	  centipede[i].boite.y += (centipede[i].direction*2-1) * centipede[i].vitesse * dt;
-	else
-	  centipede[i].boite.x += ((centipede[i].direction-2)*2-1) * centipede[i].vitesse * dt;*/
-	break;
-      case 2: // Segment qui suit ses checkpoints
-	/*if (centipede[i].direction == DIR_HAUT || centipede[i].direction == DIR_BAS) {
-	  centipede[i].boite.y += (centipede[i].direction*2-1) * centipede[i].vitesse * dt;
-	} else {
-	  centipede[i].boite.x += ((centipede[i].direction-2)*2-1) * centipede[i].vitesse * dt;
-	}*/
+function avanceTete(i, dp) { // Gestion récursive du deltaPos (>0) en trop
 	switch (centipede[i].direction) {
-	  case DIR_HAUT:
-	    centipede[i].boite.y -= centipede[i].vitesse*dt;
-	    if (centipede[i].checkpoints.length && centipede[i].boite.y <= centipede[i].checkpoints[0].px) {
-	      //console.log("Checkpoint dans DIR_HAUT ! "+centipede[i].checkpoints[0].px+"px vers " +centipede[i].checkpoints[0].nextDir);
-	      centipede[i].boite.y = centipede[i].checkpoints[0].px;
-	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
-	    }
-	    break;
-	  case DIR_BAS:
-	    centipede[i].boite.y += centipede[i].vitesse*dt;
-	    if (centipede[i].checkpoints.length && centipede[i].boite.y >= centipede[i].checkpoints[0].px) {
-	      //console.log("Checkpoint dans DIR_BAS ! "+centipede[i].checkpoints[0].px+"px vers " +centipede[i].checkpoints[0].nextDir);
-	      centipede[i].boite.y = centipede[i].checkpoints[0].px;
-	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
-	    }
-	    break;
-	  case DIR_GAUCHE:
-	    centipede[i].boite.x -= centipede[i].vitesse*dt;
-	    if (centipede[i].checkpoints.length && centipede[i].boite.x <= centipede[i].checkpoints[0].px) {
-	      //console.log("Checkpoint dans DIR_GAUCHE ! "+centipede[i].checkpoints[0].px+"px vers " +centipede[i].checkpoints[0].nextDir);
-	      centipede[i].boite.x = centipede[i].checkpoints[0].px;
-	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
-	    }
-	    break;
-	  case DIR_DROITE:
-	    centipede[i].boite.x += centipede[i].vitesse*dt;
-	    if (centipede[i].checkpoints.length && centipede[i].boite.x >= centipede[i].checkpoints[0].px) {
-	      //console.log("Checkpoint dans DIR_DROITE ! "+centipede[i].checkpoints[0].px+"px vers " +centipede[i].checkpoints[0].nextDir);
-	      centipede[i].boite.x = centipede[i].checkpoints[0].px;
-	      centipede[i].direction = centipede[i].checkpoints.shift().nextDir;
-	    }
-	    break;
+		case DIR_HAUT:
+			if (centipede[i].boite.y - dp <= centipede[i].debutVertical - TAILLE_BLOC) {
+				dp -= centipede[i].boite.y - centipede[i].debutVertical;
+				centipede[i].boite.y = centipede[i].debutVertical - TAILLE_BLOC;
+				centipede[i].direction = (centipede[i].ancienneDirX==DIR_GAUCHE)?DIR_DROITE:DIR_GAUCHE;
+				centipede[i].checkpoints.unshift({x: centipede[i].boite.x, y: centipede[i].boite.y, dir: DIR_HAUT});
+				if (centipede[i].boite.y == HAUT_ZONE_JOUEUR) {
+					centipede[i].ancienneDirY = DIR_BAS;
+					// Faire respawn une tête
+					var spawnX, spawnDir;
+					if (Math.round(Math.random())) {
+						spawnX = -TAILLE_BLOC;
+						spawnDir = DIR_DROITE;
+					} else {
+						spawnX = 480;
+						spawnDir = DIR_GAUCHE;
+					}
+					centipede.push({
+						etat: 1,
+						vitesse: 0.2,
+						direction: spawnDir,
+						debutVertical: HAUT_ZONE_JOUEUR,
+						ancienneDirX: spawnDir,
+						ancienneDirY: DIR_BAS,
+						checkpoints: [],
+						boite: {
+							x: spawnX,
+							y: HAUT_ZONE_JOUEUR,
+							w: TAILLE_BLOC,
+							h: TAILLE_BLOC,
+							img: imgTeteCenti
+						}
+					});
+				}
+			} else
+				centipede[i].boite.y -= dp;
+			dp = 0; // Assez avancé
+			break;
+		case DIR_BAS:
+			if (centipede[i].boite.y + dp >= centipede[i].debutVertical+TAILLE_BLOC) {
+				dp -= centipede[i].debutVertical+TAILLE_BLOC - centipede[i].boite.y;
+				centipede[i].boite.y = centipede[i].debutVertical+TAILLE_BLOC;
+				centipede[i].direction = (centipede[i].ancienneDirX==DIR_GAUCHE)?DIR_DROITE:DIR_GAUCHE;
+				centipede[i].checkpoints.unshift({x: centipede[i].boite.x, y: centipede[i].boite.y, dir: DIR_BAS});
+				if (centipede[i].boite.y == 480 - TAILLE_BLOC) {
+					centipede[i].ancienneDirY = DIR_HAUT;
+					/*if (i < centipede.length-1 && centipede[i+1].etat == 2) {
+						centipede[i+1].etat = 1;
+						centipede[i+1].boite.img = imgTeteCenti;
+						centipede[i+1].checkpoints = [];
+						centipede[i+1].ancienneDirX = centipede[i].ancienneDirX || centipede[i].direction;
+						centipede[i+1].ancienneDirY = DIR_BAS;
+					}*/
+				}
+			} else
+				centipede[i].boite.y += dp;
+			dp = 0; // Assez avancé
+			break;
+		case DIR_GAUCHE:
+			centipede[i].boite.x -= dp;
+			var goDown = centipede[i].boite.x < 0,
+			ch = champis.length;
+			if (!goDown) { // Note au benêt : à l'époque j'avais la flemme de gérer la remontée
+				for(ch = 0 ; ch < champis.length ; ch++) {
+					if (champis[ch].boite.x < centipede[i].boite.x && collision(centipede[i],champis[ch])) {
+						goDown = true;
+						break;
+					}
+				}
+			}
+			if (goDown) {
+				centipede[i].debutVertical = centipede[i].boite.y;
+				centipede[i].ancienneDirX = DIR_GAUCHE;
+				centipede[i].direction = centipede[i].ancienneDirY;
+				if (ch < champis.length) {
+					dp = champis[ch].boite.x + TAILLE_BLOC - centipede[i].boite.x
+					centipede[i].boite.x = champis[ch].boite.x + TAILLE_BLOC;
+				} else {
+					dp = - centipede[i].boite.x
+					centipede[i].boite.x = 0;
+				}
+				centipede[i].checkpoints.unshift({x: centipede[i].boite.x, y: centipede[i].boite.y, dir: DIR_GAUCHE});
+			} else {
+				dp = 0;
+			}
+			break;
+		case DIR_DROITE:
+			centipede[i].boite.x += dp;
+			var goDown = centipede[i].boite.x >= 480 - TAILLE_BLOC,
+			ch = champis.length;
+			if (!goDown) {
+				for(ch = 0 ; ch < champis.length ; ch++) {
+					if (champis[ch].boite.x > centipede[i].boite.x && collision(centipede[i],champis[ch])) {
+						goDown = true;
+						break;
+					}
+				}
+			}
+			if (goDown) {
+				centipede[i].debutVertical = centipede[i].boite.y;
+				centipede[i].ancienneDirX = DIR_DROITE;
+				centipede[i].direction = centipede[i].ancienneDirY;
+				if (ch < champis.length) {
+					dp = centipede[i].boite.x + TAILLE_BLOC - champis[ch].boite.x;
+					centipede[i].boite.x = champis[ch].boite.x - TAILLE_BLOC;
+				} else {
+					dp = centipede[i].boite.x + TAILLE_BLOC - 480;
+					centipede[i].boite.x = 480 - TAILLE_BLOC;
+				}
+				centipede[i].checkpoints.unshift({x: centipede[i].boite.x, y: centipede[i].boite.y, dir: DIR_DROITE});
+			} else {
+				dp = 0;
+			}
+			break;
+		default:
+			dp = 0;
 	}
-	break;
-    }
-  }
+	if (dp > 0) {
+		//console.log("Relaunch!");
+		avanceTete(i, dp);
+	}
+}
+
+function placementSegment(i, tete, iCP, dp) {
+	var testCP = iCP < centipede[tete].checkpoints.length,
+		applyCP = false,
+		cp = centipede[tete].checkpoints[iCP];
+	// console.log(tete);
+	// console.log(iCP);
+	// console.log(centipede);
+	// console.log(centipede[tete].checkpoints[iCP]);
+	// console.log(cp);
+	switch (centipede[i].direction) {
+		case DIR_HAUT:
+			centipede[i].boite.y += dp;
+			applyCP = testCP && centipede[i].boite.y > cp.y;
+			break;
+		case DIR_BAS:
+			centipede[i].boite.y -= dp;
+			applyCP = testCP && centipede[i].boite.y < cp.y;
+			break;
+		case DIR_GAUCHE:
+			centipede[i].boite.x += dp;
+			applyCP = testCP && centipede[i].boite.x > cp.x;
+			break;
+		case DIR_DROITE:
+			centipede[i].boite.x -= dp;
+			applyCP = testCP && centipede[i].boite.x < cp.x;
+			break;
+	}
+	if (applyCP) {
+		dp = Math.abs(centipede[i].boite.x - cp.x) + Math.abs(centipede[i].boite.y - cp.y);
+		centipede[i].boite.x = cp.x;
+		centipede[i].boite.y = cp.y;
+		centipede[i].direction = cp.dir;
+		iCP++;
+		if (dp > 0) {
+			//console.log("Replacing segment ", i, " for ", TAILLE_BLOC - dp, "px");
+			iCP = placementSegment(i, tete, iCP, dp);
+		}
+	}
+	return iCP;
 }
 
 //Avec Z,Q,S,Date
@@ -501,30 +559,42 @@ function avancementCentipedes() {
 /**
  * Fonction qui génère un champignon sain à une place disponible dans la grille
  */
-function creerChampi() {
-  var nouvChampiX, nouvChampiY, duplique;
-  do {
-    nouvChampiX = Math.floor(Math.random()*LARGEUR_GRILLE)*TAILLE_BLOC;
-    nouvChampiY = TAILLE_BLOC + Math.floor(Math.random()*(HAUTEUR_GRILLE-1))*TAILLE_BLOC;
-    duplique = false;
-    for (var ch=0 ; ch<champis.length ; ch++) {
-      duplique |= champis[ch].boite.x == nouvChampiX && champis[ch].boite.y == nouvChampiY;
-    }
-  } while (duplique);
-  return {
-    boite: {x: nouvChampiX, y: nouvChampiY, w: TAILLE_BLOC, h: TAILLE_BLOC},
-    vie: 4,
-    estVeneneux: false
-  };
+function creerChampi(x, y) {
+	if (x === undefined || y === undefined) {
+		var nouvChampiX, nouvChampiY, duplique;
+		do {
+			nouvChampiX = Math.floor(Math.random()*LARGEUR_GRILLE)*TAILLE_BLOC;
+			nouvChampiY = TAILLE_BLOC + Math.floor(Math.random()*(HAUTEUR_GRILLE-1))*TAILLE_BLOC;
+			duplique = false;
+			for (var ch=0 ; ch<champis.length ; ch++) {
+				duplique |= champis[ch].boite.x == nouvChampiX && champis[ch].boite.y == nouvChampiY;
+			}
+		} while (duplique);
+		return {
+			boite: {x: nouvChampiX, y: nouvChampiY, w: TAILLE_BLOC, h: TAILLE_BLOC},
+			vie: 4,
+			estVeneneux: false
+		};
+	} else {
+		var nch = {
+			boite: {x: x, y: y, w: TAILLE_BLOC, h: TAILLE_BLOC},
+			vie: 4,
+			estVeneneux: false
+		}, touche = false;
+		
+		for (var ch=0 ; ch<champis.length ; ch++) {
+			if (collision(nch, champis[ch])) {
+				touche = true;
+				console.log("Spawn impossible !");
+				break;
+			}
+		}
+		nch.boite.img = imgsChampis[niveau][4];
+		if (!touche)
+			champis.push(nch);
+	}
 }
-function centiChampi() {
-	var nouvChampiX, nouvChampiY;
 
-    nouvChampiX = Math.floor(Math.random()*LARGEUR_GRILLE)*TAILLE_BLOC;
-    nouvChampiY = TAILLE_BLOC + Math.floor(Math.random()*(HAUTEUR_GRILLE-1))*TAILLE_BLOC;
-	
-
-}
 /**
 * Fonction qui test la collision entre deux objets
 */
@@ -563,40 +633,75 @@ function detruireChampi (index) {
 
 }
 
-function detruireSegment(index)
+function detruireSegment(i)
 {
-    if (index < centipede.length-1) {
-	// On vérifie le segment d'après
-	if (centipede[index+1].etat == 2) {
-	    centipede[index+1].etat = 1;
-	    centipede[index+1].boite.img = imgTeteCenti;
-	    var seg = index+2;
-	    if (centipede[index].etat == 2) {
-	      while (seg < centipede.length && centipede[seg].etat == 2) {
-		//console.log(centipede[index+1].checkpoints.length, " checkpoints supprimés pour le segment " + seg +" qui en avait " + centipede[seg].checkpoints.length + ".");
-		for (var ch = 0 ; ch < centipede[index+1].checkpoints.length ; ch++) {
-		  //console.log("SHIFTING");
-		  centipede[seg].checkpoints.shift();
-		}
-		//console.log("Maintenant " + centipede[seg].checkpoints.length + ".");
-		seg++;
-	      }
-	    }
-	    centipede[index+1].checkpoints = null;
-	    if (centipede[index+1].direction == DIR_BAS)
-		centipede[index+1].debutVertical = centipede[index+1].boite.y-centipede[index+1].boite.y%TAILLE_BLOC;
-	    else if (centipede[index+1].direction == DIR_HAUT)
-		centipede[index+1].debutVertical = centipede[index+1].boite.y-centipede[index+1].boite.y%TAILLE_BLOC + TAILLE_BLOC;
-	    else
-		centipede[index+1].debutVertical = 0;
-	    
-	    centipede[index+1].ancienneDir = centipede[index].ancienneDir || centipede[index].direction;
+	if (i < centipede.length-1) {
+		// On vérifie le segment d'après
+		if (centipede[i+1].etat == 2) {
+			var tete = getHead(i+1);
+			centipede[i+1].etat = 1;
+			centipede[i+1].boite.img = imgTeteCenti;
+			/*var seg = i+2;
+			if (centipede[i].etat == 2) {
+				while (seg < centipede.length && centipede[seg].etat == 2) {
+					//console.log(centipede[i+1].checkpoints.length, " checkpoints supprimés pour le segment " + seg +" qui en avait " + centipede[seg].checkpoints.length + ".");
+					for (var ch = 0 ; ch < centipede[i+1].checkpoints.length ; ch++) {
+						//console.log("SHIFTING");
+						centipede[seg].checkpoints.shift();
+					}
+					//console.log("Maintenant " + centipede[seg].checkpoints.length + ".");
+					seg++;
+				}
+			}
+			centipede[i+1].checkpoints = null;*/
+			centipede[i+1].checkpoints = [];
+			for (var cp = centipede[i+1].curCP ; cp < centipede[tete].checkpoints.length ; cp++)
+				centipede[i+1].checkpoints.push(centipede[tete].checkpoints[cp]);
 
+			if (centipede[i+1].direction == DIR_BAS)
+				centipede[i+1].debutVertical = centipede[i+1].boite.y-centipede[i+1].boite.y%TAILLE_BLOC;
+			else if (centipede[i+1].direction == DIR_HAUT)
+				centipede[i+1].debutVertical = centipede[i+1].boite.y-centipede[i+1].boite.y%TAILLE_BLOC + TAILLE_BLOC;
+			else
+				centipede[i+1].debutVertical = 0;
+
+			centipede[i+1].ancienneDirX = centipede[i].ancienneDirX || centipede[i].direction;
+			centipede[i+1].ancienneDirY = centipede[tete].ancienneDirY;
+		}
 	}
-    }
-    centipede[index].etat = 0;
+	centipede[i].etat = 0;
+	var spawnX = centipede[i].boite.x-centipede[i].boite.x%TAILLE_BLOC,
+		spawnY = centipede[i].boite.y-centipede[i].boite.y%TAILLE_BLOC;
+	switch (centipede[i].direction) {
+		// case DIR_HAUT:
+			// spawnY-= TAILLE_BLOC;
+			// break;
+		case DIR_BAS:
+			spawnY+= TAILLE_BLOC;
+			break;
+		// case DIR_GAUCHE:
+			// spawnX-= TAILLE_BLOC;
+			// break;
+		case DIR_DROITE:
+			spawnX+= TAILLE_BLOC;
+			break;
+	}
+	creerChampi(spawnX, spawnY);
 }
 
+/**
+ * Retourne l'index de la tête associée au segment
+ */
+function getHead(seg) {
+  while (seg >= 0 && centipede[seg].etat == 2)
+    seg--;
+  if (seg < 0 || centipede[seg].etat != 1)
+    return -1;
+  else
+    return seg;
+}
+
+// Affichage
 
 function dessineBoite(obj) {
     //console.log(obj);
