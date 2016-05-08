@@ -122,7 +122,9 @@ init = function() {
 
     // Initialisation des variables
 	niveau = 1; // creerChampi en a besoin
-
+	nivMax = parseInt(localStorage.getItem("CentipedeNivMax")) || 1;
+	record = parseInt(localStorage.getItem("CentipedeRecord")) || 0;
+	
     initJoueur();
 	
 }
@@ -166,9 +168,7 @@ render = function() {
     ctx.fillRect(0, 0, cnv.width, cnv.height);
 	
 	// Affichage du jeu
-	drawNiveau(niveau);
-	drawScore(score);
-	drawVie(vie);
+	drawTexteSuperieur();
 	//drawTextDead();
     dessineBoite(joueur);
     for (var i=0 ; i<champis.length ; i++)
@@ -233,11 +233,11 @@ function testMort()
 		
 		if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0)
 		{
-			render = function()
-			{
-				drawTextDead();
-				
-			}
+			if (niveau > nivMax)
+				localStorage.setItem("CentipedeNivMax", niveau);
+			if (score > record)
+				localStorage.setItem("CentipedeRecord", score);
+			render = drawTextDead();
 			break;
 			
 		}
@@ -254,31 +254,25 @@ drawCenterText = function(text, y)
 }
 
 function drawTextDead() {
-var gradient=ctx.createLinearGradient(0,100,0,0);
-gradient.addColorStop("0","magenta");
-gradient.addColorStop("0.5","blue");
-gradient.addColorStop("1.0","red");
-// Fill with gradient
-ctx.fillStyle=gradient;
-drawCenterText("Vous êtes mort",250);
-drawCenterText(" <=> YOU SUCK DUDE !",280);
-drawCenterText(" <=> TRY AGAIN!",310);
+	var gradient=ctx.createLinearGradient(0,100,0,0);
+	gradient.addColorStop("0","magenta");
+	gradient.addColorStop("0.5","blue");
+	gradient.addColorStop("1.0","red");
+	// Fill with gradient
+	ctx.fillStyle=gradient;
+	drawCenterText("Vous êtes mort",250);
+	drawCenterText(" <=> YOU SUCK DUDE !",280);
+	drawCenterText(" <=> TRY AGAIN!",310);
 }
-function drawScore() {
-    ctx.font = "bold 15px Arial";
+function drawTexteSuperieur() {
+    ctx.font = "bold " + TAILLE_BLOC + "px Arial";
     ctx.fillStyle = "#FF0000";
-    ctx.fillText("Score: "+score, 01, 18);
+
+    ctx.fillText("Niv. : "+niveau+"/"+nivMax, 1, TAILLE_BLOC);
+    ctx.fillText("Score : "+score+"/"+record, 140, TAILLE_BLOC);
+    ctx.fillText("Vie : "+joueur.vies, 400, TAILLE_BLOC);
 }
-function drawNiveau() {
-    ctx.font = "bold 15px Arial";
-    ctx.fillStyle = "#FF0000";
-    ctx.fillText("Niveau: "+niveau, 100, 18);
-}
-function drawVie() {
-    ctx.font = "bold 15px Arial";
-    ctx.fillStyle = "#FF0000";
-    ctx.fillText("Vie: "+vie, 350, 18);
-}
+
 function updateTir()
 {
 	if(appuiTir && !tir.actif)
