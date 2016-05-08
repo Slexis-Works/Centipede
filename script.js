@@ -31,7 +31,7 @@ var centipede = [];
 var tir;
 var araignee, puce, scorpion;
 
-
+var vie;
 var niveau;
 var score;
 
@@ -168,6 +168,7 @@ render = function() {
 	// Affichage du jeu
 	drawNiveau(niveau);
 	drawScore(score);
+	drawVie(vie);
 	//drawTextDead();
     dessineBoite(joueur);
     for (var i=0 ; i<champis.length ; i++)
@@ -264,14 +265,19 @@ drawCenterText(" <=> YOU SUCK DUDE !",280);
 drawCenterText(" <=> TRY AGAIN!",310);
 }
 function drawScore() {
-    ctx.font = "bold 30px Arial";
+    ctx.font = "bold 15px Arial";
     ctx.fillStyle = "#FF0000";
-    ctx.fillText("Score: "+score, 01, 22);
+    ctx.fillText("Score: "+score, 01, 18);
 }
 function drawNiveau() {
-    ctx.font = "bold 30px Arial";
+    ctx.font = "bold 15px Arial";
     ctx.fillStyle = "#FF0000";
-    ctx.fillText("Niveau: "+niveau, 200, 22);
+    ctx.fillText("Niveau: "+niveau, 100, 18);
+}
+function drawVie() {
+    ctx.font = "bold 15px Arial";
+    ctx.fillStyle = "#FF0000";
+    ctx.fillText("Vie: "+vie, 350, 18);
 }
 function updateTir()
 {
