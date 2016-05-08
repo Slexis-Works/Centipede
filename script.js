@@ -1,5 +1,5 @@
 // Constantes utiles au programme:
-var TAILLE_ECRAN = 480, TAILLE_BLOC = 24;
+var TAILLE_ECRAN = 480, TAILLE_BLOC = 20;
 var CHAMPIS_MIN = 30, CHAMPIS_MAX = 34;
 var DIR_HAUT = 0, DIR_BAS = 1, DIR_GAUCHE = 2, DIR_DROITE = 3; // DO NOT EDIT
 
@@ -53,46 +53,16 @@ initLancement = function() {
 
 }
 initCentipede = function() {
-    imgTeteCenti = new Image();
-    imgTeteCenti.onload = function() {
-	imgCorpsCenti = new Image();
-	imgCorpsCenti.onload = function () {
-	centipede[0] = {
-		etat: 1,
-		vitesse: 0.4,
-		direction: DIR_BAS,
-		debutVertical: -TAILLE_BLOC,
-		ancienneDirX: DIR_GAUCHE,
-		ancienneDirY: DIR_BAS,
-		checkpoints: [],
-		boite: {
-			x: TAILLE_BLOC*Math.floor(LARGEUR_GRILLE/2),
-			y: -TAILLE_BLOC,
-			w: TAILLE_BLOC,
-			h: TAILLE_BLOC,
-			img: imgTeteCenti
+	imgTeteCenti = new Image();
+	imgTeteCenti.onload = function() {
+		imgCorpsCenti = new Image();
+		imgCorpsCenti.onload = function () {
+			spawnCentipede();
+			initLancement();
 		}
-	};
-	for (var seg=1 ; seg<12; seg++) {
-	  centipede[seg] = {
-	    etat: 2,
-	    vitesse: 0.40,
-	    direction: 1,
-	    curCP: 0, // Checkpoint à traiter
-	    boite: {
-	      x: 6*TAILLE_BLOC,
-	      y: -seg*TAILLE_BLOC,
-	      w: TAILLE_BLOC,
-	      h: TAILLE_BLOC,
-	      img: imgCorpsCenti
-	    }
-	  };
+		imgCorpsCenti.src = "imgs/CorpsCentipedeHaut.png";
 	}
-	initLancement();
-      }
-      imgCorpsCenti.src = "imgs/CorpsCentipedeHaut.png";
-    }
-    imgTeteCenti.src = "imgs/TeteCentipedeHaut.png";
+	imgTeteCenti.src = "imgs/TeteCentipedeHaut.png";
 }
 initTir = function()
 {
@@ -114,7 +84,7 @@ initChampignons = function(nbC, lvl) {
 				nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
 				for (var i=0 ; i<nbChampis ; i++) {
 				  champis[i] = creerChampi(champis);
-				  champis[i].boite.img = imgsChampis[niveau][4];
+				  champis[i].boite.img = imgsChampis[(niveau-1)%5+1][4];
 				}
 				initTir();
 			}else 
@@ -212,6 +182,47 @@ render = function() {
 /////////////////////
 // Sous-fonctions //
 ///////////////////
+
+function spawnCentipede() {
+	var vitesse = 0.15*Math.log(2+niveau);
+	var seg = 0;
+	centipede = [];
+	while (seg < niveau && seg < 12) {
+		centipede[seg] = {
+			etat: 1,
+			vitesse: vitesse,
+			direction: DIR_BAS,
+			debutVertical: -TAILLE_BLOC,
+			ancienneDirX: DIR_GAUCHE,
+			ancienneDirY: DIR_BAS,
+			checkpoints: [],
+			boite: {
+				x: TAILLE_BLOC*(Math.floor(LARGEUR_GRILLE/2)+Math.min(12, niveau/2) - 2*seg),
+				y: -TAILLE_BLOC,
+				w: TAILLE_BLOC,
+				h: TAILLE_BLOC,
+				img: imgTeteCenti
+			}
+		};
+		seg++;
+	}
+	while (seg < 12) {
+		centipede[seg] = {
+			etat: 2,
+			vitesse: vitesse,
+			direction: 1,
+			curCP: 0, // Checkpoint à traiter
+			boite: {
+				x: -TAILLE_BLOC, // Écrasé peu après
+				y: -TAILLE_BLOC, // Écrasé peu après
+				w: TAILLE_BLOC,
+				h: TAILLE_BLOC,
+				img: imgCorpsCenti
+			}
+		};
+		seg++;
+	}
+}
 
 function testMort()
 {
@@ -526,6 +537,24 @@ function placementSegment(i, tete, iCP, dp) {
 	return iCP;
 }
 
+function niveauSuivant() {
+	var passe = true, seg = 0;
+	while (passe && seg < centipede.length) {
+		if (centipede[seg].etat != 0)
+			passe = false;
+		else
+			seg++;
+	}
+	if (passe) {
+		setTimeout(function() {
+			niveau++;
+			for (var ch = 0 ; ch < champis.length ; ch++)
+				champis[ch].boite.img = imgsChampis[(niveau-1)%5+1][champis[ch].vie];
+			spawnCentipede();
+		}, 1000);
+	}
+}
+
 //Avec Z,Q,S,Date
 /*
 	if (appuiD && joueur.boite.x < cnv.width) {
@@ -583,13 +612,15 @@ function creerChampi(x, y) {
 		for (var ch=0 ; ch<champis.length ; ch++) {
 			if (collision(nch, champis[ch])) {
 				touche = true;
-				console.log("Spawn impossible !");
+				//console.log("Spawn impossible !");
 				break;
 			}
 		}
-		nch.boite.img = imgsChampis[niveau][4];
-		if (!touche)
+		
+		if (!touche) {
+			nch.boite.img = imgsChampis[(niveau-1)%5+1][4];
 			champis.push(nch);
+		}
 	}
 }
 
@@ -625,7 +656,7 @@ function detruireChampi (index) {
 		champis.pop();
 		score = score + 1;
   } else {
-    champis[index].boite.img = imgsChampis[niveau][champis[index].vie];
+    champis[index].boite.img = imgsChampis[(niveau-1)%5+1][champis[index].vie];
 	
   }
 
@@ -687,6 +718,7 @@ function detruireSegment(i)
 			break;
 	}
 	creerChampi(spawnX, spawnY);
+	niveauSuivant();
 }
 
 /**
