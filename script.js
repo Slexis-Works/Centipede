@@ -225,10 +225,10 @@ function testMort()
 				drawTextDead();
 				
 			}
-			
-
 			break;
+			
 		}
+		
 	}
 	
 }
@@ -652,6 +652,7 @@ function detruireSegment(i)
 				}
 			}
 			centipede[i+1].checkpoints = null;*/
+			score += 100;
 			centipede[i+1].checkpoints = [];
 			for (var cp = centipede[i+1].curCP ; cp < centipede[tete].checkpoints.length ; cp++)
 				centipede[i+1].checkpoints.push(centipede[tete].checkpoints[cp]);
@@ -665,6 +666,7 @@ function detruireSegment(i)
 
 			centipede[i+1].ancienneDirX = centipede[i].ancienneDirX || centipede[i].direction;
 			centipede[i+1].ancienneDirY = centipede[tete].ancienneDirY;
+			
 		}
 	}
 	centipede[i].etat = 0;
