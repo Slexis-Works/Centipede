@@ -40,18 +40,21 @@ var score;
 var imgsChampis = [null, [], [], [],[],[]];
 var imgTeteCenti, imgCorpsCenti;
 
+var update, render;
+
 /////////////////////
 // Initialisation //
 ///////////////////
 
 initLancement = function() {
     // lancement de la boucle de jeu
-    lastTime = Date.now();
+	update = updateMain;
+	render = renderMain;
 	score = 0;
+    lastTime = Date.now();
     boucleDeJeu();
-	
-
 }
+
 initCentipede = function() {
 	imgTeteCenti = new Image();
 	imgTeteCenti.onload = function() {
@@ -82,10 +85,8 @@ initChampignons = function(nbC, lvl) {
 			if(lvl == 5) 
 			{
 				nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
-				for (var i=0 ; i<nbChampis ; i++) {
-				  champis[i] = creerChampi(champis);
-				  champis[i].boite.img = imgsChampis[(niveau-1)%5+1][4];
-				}
+				for (var i=0 ; i<nbChampis ; i++)
+				  creerChampi(champis);
 				initTir();
 			}else 
 				initChampignons(1, lvl +1);
@@ -144,7 +145,7 @@ boucleDeJeu = function() {
  *  Mise à jour de l'état du jeu
  *  @param  d   date courante
  */
-update = function(d) {
+updateMain = function(d) {
     dt = d - lastTime;
     lastTime = d;
 
@@ -161,7 +162,7 @@ update = function(d) {
 /**
  *  Fonction réalisant le rendu de l'état du jeu
  */
-render = function() {
+renderMain = function() {
     // effacement de l'écran
     ctx.clearRect(0, 0, cnv.width, cnv.height);
     ctx.fillStyle="#002";
@@ -237,7 +238,24 @@ function testMort()
 				localStorage.setItem("CentipedeNivMax", niveau);
 			if (score > record)
 				localStorage.setItem("CentipedeRecord", score);
-			render = drawTextDead();
+			joueur.vies--;
+			update = function () {};
+			if (joueur.vies >= 0) {
+				var oldUpdate = update;
+				var oldRender = render;
+				render = renderMort;
+				setTimeout(function () {
+					update = updateMain;
+					render = renderMain;
+					spawnCentipede();
+					joueur.boite.x = (cnv.width-TAILLE_BLOC)/2;
+					joueur.boite.y = cnv.height-TAILLE_BLOC;
+					for (var i=0 ; i<5 ; i++)
+					  creerChampi(champis);
+				}, 1000);
+			} else {
+				render = renderGameOver;
+			}
 			break;
 			
 		}
@@ -253,8 +271,8 @@ drawCenterText = function(text, y)
 	ctx.fillText(text, (TAILLE_ECRAN-textdim.width)/2, y);
 }
 
-function drawTextDead() {
-	var gradient=ctx.createLinearGradient(0,100,0,0);
+function renderGameOver() {
+	var gradient=ctx.createLinearGradient(0, 200 ,0, 340);
 	gradient.addColorStop("0","magenta");
 	gradient.addColorStop("0.5","blue");
 	gradient.addColorStop("1.0","red");
@@ -264,6 +282,17 @@ function drawTextDead() {
 	drawCenterText(" <=> YOU SUCK DUDE !",280);
 	drawCenterText(" <=> TRY AGAIN!",310);
 }
+function renderMort() {
+	var gradient=ctx.createLinearGradient(0, 200 ,0, 340);
+	gradient.addColorStop("0","magenta");
+	gradient.addColorStop("0.5","blue");
+	gradient.addColorStop("1.0","red");
+	// Fill with gradient
+	ctx.fillStyle=gradient;
+	drawCenterText("Vous êtes mort !",250);
+	drawCenterText("Encore "+joueur.vies+" vies !",280);
+}
+
 function drawTexteSuperieur() {
     ctx.font = "bold " + TAILLE_BLOC + "px Arial";
     ctx.fillStyle = "#FF0000";
@@ -603,11 +632,11 @@ function creerChampi(x, y) {
 				duplique |= champis[ch].boite.x == nouvChampiX && champis[ch].boite.y == nouvChampiY;
 			}
 		} while (duplique);
-		return {
-			boite: {x: nouvChampiX, y: nouvChampiY, w: TAILLE_BLOC, h: TAILLE_BLOC},
+		champis.push({
+			boite: {x: nouvChampiX, y: nouvChampiY, w: TAILLE_BLOC, h: TAILLE_BLOC, img: imgsChampis[(niveau-1)%5+1][4]},
 			vie: 4,
 			estVeneneux: false
-		};
+		});
 	} else {
 		var nch = {
 			boite: {x: x, y: y, w: TAILLE_BLOC, h: TAILLE_BLOC},
@@ -660,7 +689,7 @@ function detruireChampi (index) {
     for (var c=index ; c<champis.length-1 ; c++)
       champis[c] = champis[c+1];
 		champis.pop();
-		score = score + 1;
+		addScore(1);
   } else {
     champis[index].boite.img = imgsChampis[(niveau-1)%5+1][champis[index].vie];
 	
@@ -671,9 +700,9 @@ function detruireChampi (index) {
 function detruireSegment(i)
 {
 	if(centipede[i].etat == 1)
-		score += 100
+		addScore(100);
 	if(centipede[i].etat == 2)
-		score += 10
+		addScore(10);
 	if (i < centipede.length-1) {
 		// On vérifie le segment d'après
 		if (centipede[i+1].etat == 2) {
@@ -741,6 +770,14 @@ function getHead(seg) {
     return -1;
   else
     return seg;
+}
+
+function addScore(delta) {
+	if (delta > 0) {
+		var lifePart = Math.floor(score/8000); // Sans ennemis supplémentaires, plus équilibré que 12 000
+		score += delta;
+		joueur.vies += Math.floor(score/8000) - lifePart;
+	}
 }
 
 // Affichage
