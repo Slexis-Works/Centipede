@@ -166,6 +166,7 @@ render = function() {
     ctx.fillRect(0, 0, cnv.width, cnv.height);
 	
 	// Affichage du jeu
+	drawNiveau(niveau);
 	drawScore(score);
 	//drawTextDead();
     dessineBoite(joueur);
@@ -265,7 +266,12 @@ drawCenterText(" <=> TRY AGAIN!",310);
 function drawScore() {
     ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#FF0000";
-    ctx.fillText("Score: "+score, 01, 20);
+    ctx.fillText("Score: "+score, 01, 25);
+}
+function drawNiveau() {
+    ctx.font = "bold 30px Arial";
+    ctx.fillStyle = "#FF0000";
+    ctx.fillText("Niveau: "+niveau, 200, 25);
 }
 function updateTir()
 {
