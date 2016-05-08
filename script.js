@@ -100,7 +100,7 @@ initTir = function()
 	{
 		boite: {x: 0, y:0, w:5, h:15 , col:"#FE0101"},
 		actif: false,
-		vitesse: 0.95,		
+		vitesse: 0.75,		
 	};
 	initCentipede();
 }
@@ -218,18 +218,16 @@ function testMort()
 	for(var i =0 ; i < centipede.length;i++)
 	{	
 		
-		if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC))
+		if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0)
 		{
-			// update = function()
-			// {
-				
-				
-			// }
 			render = function()
 			{
 				drawTextDead();
 				
 			}
+			
+
+			break;
 		}
 	}
 	
@@ -383,7 +381,7 @@ function avanceTete(i, dp) { // Gestion récursive du deltaPos (>0) en trop
 					}
 					centipede.push({
 						etat: 1,
-						vitesse: 0.2,
+						vitesse: 0.4,
 						direction: spawnDir,
 						debutVertical: HAUT_ZONE_JOUEUR,
 						ancienneDirX: spawnDir,
