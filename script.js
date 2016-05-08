@@ -670,6 +670,10 @@ function detruireChampi (index) {
 
 function detruireSegment(i)
 {
+	if(centipede[i].etat == 1)
+		score += 100
+	if(centipede[i].etat == 2)
+		score += 10
 	if (i < centipede.length-1) {
 		// On vérifie le segment d'après
 		if (centipede[i+1].etat == 2) {
@@ -689,7 +693,7 @@ function detruireSegment(i)
 				}
 			}
 			centipede[i+1].checkpoints = null;*/
-			score += 100;
+			
 			centipede[i+1].checkpoints = [];
 			for (var cp = centipede[i+1].curCP ; cp < centipede[tete].checkpoints.length ; cp++)
 				centipede[i+1].checkpoints.push(centipede[tete].checkpoints[cp]);
