@@ -266,12 +266,12 @@ drawCenterText(" <=> TRY AGAIN!",310);
 function drawScore() {
     ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#FF0000";
-    ctx.fillText("Score: "+score, 01, 25);
+    ctx.fillText("Score: "+score, 01, 20);
 }
 function drawNiveau() {
     ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#FF0000";
-    ctx.fillText("Niveau: "+niveau, 200, 25);
+    ctx.fillText("Niveau: "+niveau, 200, 20);
 }
 function updateTir()
 {
