@@ -123,8 +123,8 @@ init = function() {
 
     // Initialisation des variables
 	niveau = 1; // creerChampi en a besoin
-	nivMax = parseInt(localStorage.getItem("CentipedeNivMax")) || 1;
-	record = parseInt(localStorage.getItem("CentipedeRecord")) || 0;
+	nivMax = parseInt(localStorage.getItem("CentipedeCMINivMax")) || 1;
+	record = parseInt(localStorage.getItem("CentipedeCMIRecord")) || 0;
 	
     initJoueur();
 	
@@ -235,9 +235,9 @@ function testMort()
 		if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0)
 		{
 			if (niveau > nivMax)
-				localStorage.setItem("CentipedeNivMax", niveau);
+				localStorage.setItem("CentipedeCMINivMax", niveau);
 			if (score > record)
-				localStorage.setItem("CentipedeRecord", score);
+				localStorage.setItem("CentipedeCMIRecord", score);
 			joueur.vies--;
 			update = function () {};
 			if (joueur.vies >= 0) {
@@ -272,24 +272,34 @@ drawCenterText = function(text, y)
 }
 
 function renderGameOver() {
-	var gradient=ctx.createLinearGradient(0, 200 ,0, 340);
+	var gradient=ctx.createLinearGradient(0, 250 ,0, 310);
 	gradient.addColorStop("0","magenta");
 	gradient.addColorStop("0.5","blue");
-	gradient.addColorStop("1.0","red");
+	gradient.addColorStop("0.99","red");
+	gradient.addColorStop("1.0","lime");
 	// Fill with gradient
 	ctx.fillStyle=gradient;
 	drawCenterText("Vous êtes mort",250);
 	drawCenterText(" <=> YOU SUCK DUDE !",280);
 	drawCenterText(" <=> TRY AGAIN!",310);
+	if (score > record) {
+		drawCenterText("Nouveau record !",340);
+		if (niveau > nivMax)
+			drawCenterText("Meilleur niveau atteint !",370);
+	} else if (niveau > nivMax)
+		drawCenterText("Meilleur niveau atteint !", 340);
 }
 function renderMort() {
-	var gradient=ctx.createLinearGradient(0, 200 ,0, 340);
-	gradient.addColorStop("0","magenta");
+	var gradient=ctx.createLinearGradient(0, 250 ,0, 280);
+	/*gradient.addColorStop("0","magenta");
 	gradient.addColorStop("0.5","blue");
-	gradient.addColorStop("1.0","red");
+	gradient.addColorStop("1.0","red");*/
+	gradient.addColorStop("0","white");
+	gradient.addColorStop("0.5","gray");
+	gradient.addColorStop("1.0","darkblue");
 	// Fill with gradient
 	ctx.fillStyle=gradient;
-	drawCenterText("Vous êtes mort !",250);
+	drawCenterText("Vous êtes mort !", 250);
 	drawCenterText("Encore "+joueur.vies+" vies !",280);
 }
 
