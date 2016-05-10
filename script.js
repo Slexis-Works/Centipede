@@ -288,7 +288,8 @@ function renderGameOver() {
 			drawCenterText("Meilleur niveau atteint !",370);
 	} else if (niveau > nivMax)
 		drawCenterText("Meilleur niveau atteint !", 340);
-	drawCenterText("RECORD À BATTRE NIVEAU : 102 !",400);
+	drawCenterText("RECORD À BATTRE NIVEAU : 303 !",400);
+	drawCenterText("RECORD À BATTRE SCORE : 363 965 !",440);
 }
 function renderMort() {
 	var gradient=ctx.createLinearGradient(0, 250 ,0, 280);
