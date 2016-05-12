@@ -37,7 +37,8 @@ var score;
 
 // Variables pour le programme
 
-var imgsChampis = [null, [], [], [],[],[]];
+var imgsChampis = [null, [], [], [],[], []];
+var imgsAraignee = [null, [], [], [], []];
 var imgTeteCenti, imgCorpsCenti;
 
 var update, render;
@@ -55,13 +56,26 @@ initLancement = function() {
     boucleDeJeu();
 }
 
+initAraignee = function(lvl) {
+	var arImg = new Image();
+	arImg.onload = function () {
+		imgsAraignee[lvl] = arImg;
+		if (lvl == 4) {
+		    spawnAraignee();
+		    initLancement();
+		} else
+		    initAraignee(lvl+1);
+	}
+	arImg.src = "imgs/Araignee" + lvl  + ".png";
+}
+
 initCentipede = function() {
 	imgTeteCenti = new Image();
 	imgTeteCenti.onload = function() {
 		imgCorpsCenti = new Image();
 		imgCorpsCenti.onload = function () {
-			spawnCentipede();
-			initLancement();
+		    spawnCentipede();
+		    initAraignee(1);
 		}
 		imgCorpsCenti.src = "imgs/CorpsCentipedeHaut.png";
 	}
@@ -149,10 +163,11 @@ updateMain = function(d) {
     dt = d - lastTime;
     lastTime = d;
 
-	deplacementPersonnage();
-	updateTir();
+    deplacementPersonnage();
+    updateTir();
     avancementCentipedes();
-	testMort();
+    updateAraignee();
+    testMort();
 }
 
 
@@ -225,6 +240,22 @@ function spawnCentipede() {
 		};
 		seg++;
 	}
+}
+
+function spawnAraignee() {
+    araignee = {
+	vitesseX: 0.4,
+	vitesseY: 0.4,
+	directionX: Math.round(Math.random())?DIR_GAUCHE:DIR_DROITE,
+	nextMove: 0,
+	boite: {
+		x: -TAILLE_BLOC,
+		y: -TAILLE_BLOC,
+		w: TAILLE_BLOC,
+		h: TAILLE_BLOC,
+		img: imgsAraignee[1+(level+1)%4]
+	}
+    };
 }
 
 function testMort()
@@ -586,6 +617,10 @@ function placementSegment(i, tete, iCP, dp) {
 		}
 	}
 	return iCP;
+}
+
+function updateAraignee() {
+    
 }
 
 function niveauSuivant() {
