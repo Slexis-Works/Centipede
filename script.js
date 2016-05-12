@@ -407,8 +407,7 @@ function updateTir()
 				tir.actif=false;
 				score += 600;
 			}
-		
-			
+
 	}
 	if(tir.boite.y <= -tir.boite.h )
 	{
@@ -684,6 +683,14 @@ function updateAraignee() {
 	    araignee.nextMove = lastTime + 100 + 300 * Math.random();
 	}
     }
+	for(var i =0 ; i < champis.length;i++)
+	{
+		if(collision(araignee, champis[i]))
+		{
+			detruireChampi(i);
+			// break;
+		}
+	}
 }
 
 function niveauSuivant() {
@@ -888,9 +895,9 @@ function getHead(seg) {
 
 function addScore(delta) {
 	if (delta > 0) {
-		var lifePart = Math.floor(score/8000); // Sans ennemis supplémentaires, plus équilibré que 12 000
+		var lifePart = Math.floor(score/12000); // Sans ennemis supplémentaires, plus équilibré que 12 000
 		score += delta;
-		joueur.vies += Math.floor(score/8000) - lifePart;
+		joueur.vies += Math.floor(score/12000) - lifePart;
 	}
 }
 
