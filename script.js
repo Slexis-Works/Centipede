@@ -187,7 +187,8 @@ renderMain = function() {
 	drawTexteSuperieur();
 	//drawTextDead();
     dessineBoite(joueur);
-    dessineBoite(araignee);
+    if (araignee.active)
+	dessineBoite(araignee);
     for (var i=0 ; i<champis.length ; i++)
         dessineBoite(champis[i]);
     if(tir.actif)
@@ -264,7 +265,7 @@ function resetAraignee() {
     araignee.directionX = Math.round(Math.random())?DIR_GAUCHE:DIR_DROITE;
     araignee.vitesseX = araignee.directionX==DIR_GAUCHE?-0.2:0.2;
     araignee.vitesseY = 0.2;
-    araignee.nextMove = lastTime + 600 + 2000*Math.random();
+    araignee.nextMove = lastTime + 100 + 300*Math.random();
     araignee.active = true;
     araignee.boite = {
 	x: araignee.directionX==DIR_GAUCHE?480:-TAILLE_BLOC,
@@ -655,18 +656,20 @@ function updateAraignee() {
 	} else {
 	    resetAraignee();
 	}
-	araignee.nextMove = lastTime + 600 + 1200 * Math.random();
+	araignee.nextMove = lastTime + 100 + 300 * Math.random();
     }
     if (araignee.active) {
 	araignee.boite.x += araignee.vitesseX * dt;
 	araignee.boite.y += araignee.vitesseY * dt;
 	if (araignee.vitesseX > 0 && araignee.boite.x > 480
-	    || araignee.vitesseX < 0 && araignee.boite.x < -TAILLE_BLOC)
+	    || araignee.vitesseX < 0 && araignee.boite.x < -TAILLE_BLOC) {
 	    araignee.active = false;
-	else if (araignee.vitesseY > 0 && araignee.boite.y > 480 - TAILLE_BLOC
+	    araignee.nextMove = 9000 + 2000*Math.random();
+	} else if (araignee.vitesseY > 0 && araignee.boite.y > 480 - TAILLE_BLOC
 		|| araignee.vitesseY < 0 && araignee.boite.y < HAUT_ZONE_JOUEUR) {
 	    araignee.vitesseY = -araignee.vitesseY;
 	    araignee.vitesseX = 0;
+	    araignee.nextMove = lastTime + 100 + 300 * Math.random();
 	}
     }
 }
