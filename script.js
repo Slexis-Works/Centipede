@@ -372,6 +372,7 @@ function updateTir()
 		tir.actif = true;
 		tir.boite.x = joueur.boite.x + (TAILLE_BLOC - tir.boite.w)/2;
 		tir.boite.y = joueur.boite.y ;
+		playSound("Tir");
 		
 	}
 	if(tir.actif)
@@ -897,6 +898,15 @@ function dessineBoite(obj) {
 		}
 	}
 }
+
+function playSound(name) {
+    //document.getElementById("son"+name).pause();
+    document.getElementById("son"+name).currentTime = 0;
+    if (document.getElementById("son"+name).paused)
+	document.getElementById("son"+name).play();
+    console.log(document.getElementById("son"+name));
+}
+
 /**
  *  Fonction appelée lorsqu'une touche du clavier est appuyée
  *  Associée à l'événement "keyDown"
