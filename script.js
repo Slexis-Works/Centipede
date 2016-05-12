@@ -283,7 +283,8 @@ function testMort()
 	for(var i =0 ; i < centipede.length;i++)
 	{	
 		
-		if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0)
+		if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0
+			|| collisionTolerante(joueur, araignee, 0.5*TAILLE_BLOC))
 		{
 			if (niveau > nivMax)
 				localStorage.setItem("CentipedeCMINivMax", niveau);
@@ -310,10 +311,14 @@ function testMort()
 			break;
 			
 		}
-		
+
+
 	}
 	
+	
 }
+	
+
 
 //text centré
 drawCenterText = function(text, y)
@@ -396,6 +401,13 @@ function updateTir()
 				break;
 			}
 		}
+		if(araignee.active && collision(tir,araignee))
+			{				
+				araignee.active = false;
+				tir.actif=false;
+				score += 600;
+			}
+		
 			
 	}
 	if(tir.boite.y <= -tir.boite.h )
