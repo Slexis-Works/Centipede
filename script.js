@@ -397,6 +397,10 @@ function deplacementPersonnage()
 				
 	}
 }
+// function avancementAraignee () {
+	// for (var i = 0 )
+	
+// }
 
 function avancementCentipedes() {
 	var iTete, curCP;
