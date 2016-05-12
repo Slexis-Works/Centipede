@@ -283,7 +283,8 @@ function testMort()
 	for(var i =0 ; i < centipede.length;i++)
 	{	
 		
-		if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0)
+		if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0
+			|| collisionTolerante(joueur, araignee, 0.5*TAILLE_BLOC))
 		{
 			if (niveau > nivMax)
 				localStorage.setItem("CentipedeCMINivMax", niveau);
@@ -310,10 +311,14 @@ function testMort()
 			break;
 			
 		}
-		
+
+
 	}
 	
+	
 }
+	
+
 
 //text centré
 drawCenterText = function(text, y)
@@ -397,7 +402,13 @@ function updateTir()
 				break;
 			}
 		}
-			
+		if(araignee.active && collision(tir,araignee))
+			{				
+				araignee.active = false;
+				tir.actif=false;
+				score += 600;
+			}
+
 	}
 	if(tir.boite.y <= -tir.boite.h )
 	{
@@ -673,6 +684,14 @@ function updateAraignee() {
 	    araignee.nextMove = lastTime + 100 + 300 * Math.random();
 	}
     }
+	for(var i =0 ; i < champis.length;i++)
+	{
+		if(collision(araignee, champis[i]))
+		{
+			detruireChampi(i);
+			// break;
+		}
+	}
 }
 
 function niveauSuivant() {
@@ -877,9 +896,9 @@ function getHead(seg) {
 
 function addScore(delta) {
 	if (delta > 0) {
-		var lifePart = Math.floor(score/8000); // Sans ennemis supplémentaires, plus équilibré que 12 000
+		var lifePart = Math.floor(score/12000); // Sans ennemis supplémentaires, plus équilibré que 12 000
 		score += delta;
-		joueur.vies += Math.floor(score/8000) - lifePart;
+		joueur.vies += Math.floor(score/12000) - lifePart;
 	}
 }
 
