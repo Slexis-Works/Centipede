@@ -5,7 +5,7 @@ var DIR_HAUT = 0, DIR_BAS = 1, DIR_GAUCHE = 2, DIR_DROITE = 3; // DO NOT EDIT
 
 var HAUTEUR_GRILLE = TAILLE_ECRAN/TAILLE_BLOC-1, LARGEUR_GRILLE = TAILLE_ECRAN/TAILLE_BLOC;
 
-var HAUT_ZONE_JOUEUR = (TAILLE_ECRAN/TAILLE_BLOC-5)*TAILLE_BLOC;
+var HAUT_ZONE_JOUEUR = (TAILLE_ECRAN/TAILLE_BLOC-6)*TAILLE_BLOC;
 
 // Variables (globales) du programme
 
@@ -66,7 +66,7 @@ initAraignee = function(lvl) {
 		} else
 		    initAraignee(lvl+1);
 	}
-	arImg.src = "imgs/Araignee" + lvl  + ".png";
+	arImg.src = "imgs/Araignée" + lvl  + ".png";
 }
 
 initCentipede = function() {
@@ -187,6 +187,7 @@ renderMain = function() {
 	drawTexteSuperieur();
 	//drawTextDead();
     dessineBoite(joueur);
+    dessineBoite(araignee);
     for (var i=0 ; i<champis.length ; i++)
         dessineBoite(champis[i]);
     if(tir.actif)
@@ -244,18 +245,36 @@ function spawnCentipede() {
 
 function spawnAraignee() {
     araignee = {
-	vitesseX: 0.4,
-	vitesseY: 0.4,
-	directionX: Math.round(Math.random())?DIR_GAUCHE:DIR_DROITE,
+	vitesseX: 0,
+	vitesseY: 0,
+	directionX: DIR_GAUCHE,
 	nextMove: 0,
+	active: false,
 	boite: {
 		x: -TAILLE_BLOC,
 		y: -TAILLE_BLOC,
 		w: TAILLE_BLOC,
 		h: TAILLE_BLOC,
-		img: imgsAraignee[1+(level+1)%4]
+		img: imgsAraignee[1+(niveau+1)%4]
 	}
     };
+}
+
+function resetAraignee() {
+    araignee.directionX = Math.round(Math.random())?DIR_GAUCHE:DIR_DROITE;
+    araignee.vitesseX = araignee.directionX==DIR_GAUCHE?-0.2:0.2;
+    araignee.vitesseY = 0.2;
+    araignee.nextMove = lastTime + 600 + 2000*Math.random();
+    araignee.active = true;
+    araignee.boite = {
+	x: araignee.directionX==DIR_GAUCHE?480:-TAILLE_BLOC,
+	y: 480-6*TAILLE_BLOC,
+	w: TAILLE_BLOC,
+	h: TAILLE_BLOC,
+	img: imgsAraignee[1+(niveau+1)%4]
+    };
+
+
 }
 
 function testMort()
@@ -406,7 +425,7 @@ function deplacementPersonnage()
 			}
 	}
 
-	if(appuiHaut && joueur.boite.y+joueur.boite.h > HAUT_ZONE_JOUEUR) {
+	if(appuiHaut && joueur.boite.y > HAUT_ZONE_JOUEUR) {
 		joueur.boite.y -= joueur.vitesse*dt;
 		for(var i =0 ; i < champis.length;i++)
 			if (collisionTolerante(joueur,champis[i], 0.3*TAILLE_BLOC))
@@ -620,7 +639,36 @@ function placementSegment(i, tete, iCP, dp) {
 }
 
 function updateAraignee() {
-    
+    if (lastTime > araignee.nextMove) {
+	if (araignee.active) {
+	    switch (Math.floor(Math.random()*3)) {
+		case 0: // Inversion sur Y
+		case 1:
+		    araignee.vitesseY *= -1;
+		    araignee.vitesseX = 0;
+		    break;
+		case 2: // Partage en diagonale
+		    araignee.vitesseX = araignee.directionX==DIR_GAUCHE?-0.2:0.2;
+		    araignee.vitesseY = 0.2;
+		    break;
+	    }
+	} else {
+	    resetAraignee();
+	}
+	araignee.nextMove = lastTime + 600 + 1200 * Math.random();
+    }
+    if (araignee.active) {
+	araignee.boite.x += araignee.vitesseX * dt;
+	araignee.boite.y += araignee.vitesseY * dt;
+	if (araignee.vitesseX > 0 && araignee.boite.x > 480
+	    || araignee.vitesseX < 0 && araignee.boite.x < -TAILLE_BLOC)
+	    araignee.active = false;
+	else if (araignee.vitesseY > 0 && araignee.boite.y > 480 - TAILLE_BLOC
+		|| araignee.vitesseY < 0 && araignee.boite.y < HAUT_ZONE_JOUEUR) {
+	    araignee.vitesseY = -araignee.vitesseY;
+	    araignee.vitesseX = 0;
+	}
+    }
 }
 
 function niveauSuivant() {
