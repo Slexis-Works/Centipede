@@ -41,6 +41,8 @@ var imgsChampis = [null, [], [], [],[], []];
 var imgsAraignee = [null, [], [], [], []];
 var imgTeteCenti, imgCorpsCenti;
 
+var rotations = [0, Math.PI, -Math.PI/2, Math.PI/2];
+
 var update, render;
 
 /////////////////////
@@ -221,7 +223,8 @@ function spawnCentipede() {
 				y: -TAILLE_BLOC,
 				w: TAILLE_BLOC,
 				h: TAILLE_BLOC,
-				img: imgTeteCenti
+				img: imgTeteCenti,
+				rotate: true
 			}
 		};
 		seg++;
@@ -237,7 +240,8 @@ function spawnCentipede() {
 				y: -TAILLE_BLOC, // Écrasé peu après
 				w: TAILLE_BLOC,
 				h: TAILLE_BLOC,
-				img: imgCorpsCenti
+				img: imgCorpsCenti,
+				rotate: true
 			}
 		};
 		seg++;
@@ -280,11 +284,11 @@ function resetAraignee() {
 
 function testMort()
 {
-	for(var i =0 ; i < centipede.length;i++)
+	for(var i =0 ; i < centipede.length; i++)
 	{	
 		
 		if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0
-			|| collisionTolerante(joueur, araignee, 0.5*TAILLE_BLOC))
+			|| araignee.active && collisionTolerante(joueur, araignee, 0.5*TAILLE_BLOC))
 		{
 			if (niveau > nivMax)
 				localStorage.setItem("CentipedeCMINivMax", niveau);
@@ -304,6 +308,7 @@ function testMort()
 					joueur.boite.y = cnv.height-TAILLE_BLOC;
 					for (var i=0 ; i<5 ; i++)
 					  creerChampi(champis);
+					lastTime = Date.now(); 
 				}, 1000);
 			} else {
 				render = renderGameOver;
@@ -405,6 +410,7 @@ function updateTir()
 		if(araignee.active && collision(tir,araignee))
 			{				
 				araignee.active = false;
+				araignee.nextMove = lastTime + 9000 + 2000*Math.random();
 				tir.actif=false;
 				score += 600;
 			}
@@ -517,7 +523,8 @@ function avanceTete(i, dp) { // Gestion récursive du deltaPos (>0) en trop
 							y: HAUT_ZONE_JOUEUR,
 							w: TAILLE_BLOC,
 							h: TAILLE_BLOC,
-							img: imgTeteCenti
+							img: imgTeteCenti,
+							rotate: true
 						}
 					});
 				}
@@ -653,36 +660,36 @@ function placementSegment(i, tete, iCP, dp) {
 
 function updateAraignee() {
     if (lastTime > araignee.nextMove) {
-	if (araignee.active) {
-	    switch (Math.floor(Math.random()*3)) {
-		case 0: // Inversion sur Y
-		case 1:
-		    araignee.vitesseY *= -1;
-		    araignee.vitesseX = 0;
-		    break;
-		case 2: // Partage en diagonale
-		    araignee.vitesseX = araignee.directionX==DIR_GAUCHE?-0.2:0.2;
-		    araignee.vitesseY = 0.2;
-		    break;
-	    }
-	} else {
-	    resetAraignee();
-	}
-	araignee.nextMove = lastTime + 100 + 300 * Math.random();
+		if (araignee.active) {
+			switch (Math.floor(Math.random()*3)) {
+			case 0: // Inversion sur Y
+			case 1:
+				araignee.vitesseY *= -1;
+				araignee.vitesseX = 0;
+				break;
+			case 2: // Partage en diagonale
+				araignee.vitesseX = araignee.directionX==DIR_GAUCHE?-0.2:0.2;
+				araignee.vitesseY = 0.2;
+				break;
+			}
+		} else {
+			resetAraignee();
+		}
+		araignee.nextMove = lastTime + 100 + 300 * Math.random();
     }
     if (araignee.active) {
-	araignee.boite.x += araignee.vitesseX * dt;
-	araignee.boite.y += araignee.vitesseY * dt;
-	if (araignee.vitesseX > 0 && araignee.boite.x > 480
-	    || araignee.vitesseX < 0 && araignee.boite.x < -TAILLE_BLOC) {
-	    araignee.active = false;
-	    araignee.nextMove = 9000 + 2000*Math.random();
-	} else if (araignee.vitesseY > 0 && araignee.boite.y > 480 - TAILLE_BLOC
-		|| araignee.vitesseY < 0 && araignee.boite.y < HAUT_ZONE_JOUEUR) {
-	    araignee.vitesseY = -araignee.vitesseY;
-	    araignee.vitesseX = 0;
-	    araignee.nextMove = lastTime + 100 + 300 * Math.random();
-	}
+		araignee.boite.x += araignee.vitesseX * dt;
+		araignee.boite.y += araignee.vitesseY * dt;
+		if (araignee.vitesseX > 0 && araignee.boite.x > 480
+			|| araignee.vitesseX < 0 && araignee.boite.x < -TAILLE_BLOC) {
+			araignee.active = false;
+			araignee.nextMove = lastTime + 9000 + 2000*Math.random();
+		} else if (araignee.vitesseY > 0 && araignee.boite.y > 480 - TAILLE_BLOC
+			|| araignee.vitesseY < 0 && araignee.boite.y < HAUT_ZONE_JOUEUR) {
+			araignee.vitesseY = -araignee.vitesseY;
+			araignee.vitesseX = 0;
+			araignee.nextMove = lastTime + 100 + 300 * Math.random();
+		}
     }
 	for(var i =0 ; i < champis.length;i++)
 	{
@@ -909,9 +916,16 @@ function dessineBoite(obj) {
     //ctx.fillStyle = "#0f0";
     //ctx.fillRect(obj.boite.x, obj.boite.y, obj.boite.w, obj.boite.h);
 	if (obj.boite != null) {
-		if (obj.boite.img != null)
-			ctx.drawImage(obj.boite.img, obj.boite.x, obj.boite.y, obj.boite.w, obj.boite.h);
-		else if (obj.boite.col != null) {
+		if (obj.boite.img != null) {
+			if (obj.boite.rotate !== undefined) {
+				ctx.save();
+				ctx.translate(obj.boite.x + obj.boite.w/2, obj.boite.y + obj.boite.h/2);
+				ctx.rotate(rotations[obj.boite.rotate === true?obj.direction:obj.boite.rotate]);
+				ctx.drawImage(obj.boite.img, - obj.boite.w/2, - obj.boite.h/2, obj.boite.w, obj.boite.h);
+				ctx.restore();
+			} else
+				ctx.drawImage(obj.boite.img, obj.boite.x, obj.boite.y, obj.boite.w, obj.boite.h);
+		} else if (obj.boite.col != null) {
 			ctx.fillStyle = obj.boite.col;
 			ctx.fillRect(obj.boite.x, obj.boite.y, obj.boite.w, obj.boite.h);
 		}
