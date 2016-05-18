@@ -304,6 +304,7 @@ function testMort()
 					update = updateMain;
 					render = renderMain;
 					spawnCentipede();
+					spawnAraignee();
 					joueur.boite.x = (cnv.width-TAILLE_BLOC)/2;
 					joueur.boite.y = cnv.height-TAILLE_BLOC;
 					for (var i=0 ; i<5 ; i++)
@@ -715,6 +716,7 @@ function niveauSuivant() {
 			for (var ch = 0 ; ch < champis.length ; ch++)
 				champis[ch].boite.img = imgsChampis[(niveau-1)%5+1][champis[ch].vie];
 			spawnCentipede();
+			spawnAraignee();
 		}, 1000);
 	}
 }
