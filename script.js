@@ -31,7 +31,6 @@ var centipede = [];
 var tir;
 var araignee, puce, scorpion;
 
-var vie;
 var niveau;
 var score;
 
@@ -49,11 +48,37 @@ var update, render;
 // Initialisation //
 ///////////////////
 
-initLancement = function() {
-    // lancement de la boucle de jeu
+initJeuJoueur = function() {
+    update = function() {};
+    setTimeout(function() {
+	niveau = 1;
+	score = 0;
+	for (var ch = 0 ; ch < champis.length ; ch++)
+		champis[ch].boite.img = imgsChampis[(niveau-1)%5+1][champis[ch].vie];
+	spawnCentipede();
+	spawnAraignee();
+	
+        joueur.boite.x = (cnv.width-TAILLE_BLOC)/2
+	joueur.boite.y = cnv.height-TAILLE_BLOC;
+	joueur.vies = 2;
+	joueur.vitesse = 0.2;
+
+	champis = [];
+	nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
+	for (var i=0 ; i<nbChampis ; i++)
+	    creerChampi(champis);
+
 	update = updateMain;
 	render = renderMain;
-	score = 0;
+
+    }, 500);
+}
+
+initLancement = function() {
+    // lancement de la boucle de jeu
+    update = updateIA;
+    render = renderIA;
+    score = 0;
     lastTime = Date.now();
     boucleDeJeu();
 }
@@ -94,22 +119,22 @@ initTir = function()
 	initCentipede();
 }
 initChampignons = function(nbC, lvl) {
-	var champisImg = new Image();
-	champisImg.onload = function () {
-		imgsChampis[lvl][nbC] = champisImg;
-		if (nbC == 4) {
-			if(lvl == 5) 
-			{
-				nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
-				for (var i=0 ; i<nbChampis ; i++)
-				  creerChampi(champis);
-				initTir();
-			}else 
-				initChampignons(1, lvl +1);
-		} else
-			initChampignons(nbC+1, lvl);
-	}
-	champisImg.src = "imgs/Champignon" + nbC + "Lvl"+ lvl  + ".png";
+    var champisImg = new Image();
+    champisImg.onload = function () {
+	imgsChampis[lvl][nbC] = champisImg;
+	if (nbC == 4) {
+	    if(lvl == 5) 
+	    {
+		nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
+		for (var i=0 ; i<nbChampis ; i++)
+		    creerChampi(champis);
+		initTir();
+	    }else 
+		    initChampignons(1, lvl +1);
+	} else
+	    initChampignons(nbC+1, lvl);
+    }
+    champisImg.src = "imgs/Champignon" + nbC + "Lvl"+ lvl  + ".png";
 }
 
 initJoueur = function() {
@@ -138,12 +163,12 @@ init = function() {
     //document.addEventListener("click", captureClicSouris)
 
     // Initialisation des variables
-	niveau = 1; // creerChampi en a besoin
-	nivMax = parseInt(localStorage.getItem("CentipedeCMINivMax")) || 1;
-	record = parseInt(localStorage.getItem("CentipedeCMIRecord")) || 0;
-	
+    niveau = 1; // creerChampi en a besoin
+    nivMax = parseInt(localStorage.getItem("CentipedeCMINivMax")) || 1;
+    record = parseInt(localStorage.getItem("CentipedeCMIRecord")) || 0;
+
     initJoueur();
-	
+
 }
 
 
@@ -173,6 +198,17 @@ updateMain = function(d) {
 }
 
 
+updateIA = function(d) {
+    appuiHaut = false;
+    appuiBas = false;
+    appuiGauche = false;
+    appuiDroite = false;
+    appuiTir = false;
+
+    updateMain(d);
+}
+
+
 
 
 
@@ -185,9 +221,9 @@ renderMain = function() {
     ctx.fillStyle="#002";
     ctx.fillRect(0, 0, cnv.width, cnv.height);
 	
-	// Affichage du jeu
-	drawTexteSuperieur();
-	//drawTextDead();
+    // Affichage du jeu
+    drawTexteSuperieur();
+    //drawTextDead();
     dessineBoite(joueur);
     if (araignee.active)
 	dessineBoite(araignee);
@@ -196,8 +232,8 @@ renderMain = function() {
     if(tir.actif)
 	dessineBoite(tir);
     for (var i=0 ; i<centipede.length ; i++) {
-		if (centipede[i] != null && centipede[i].etat)
-			dessineBoite(centipede[i]);
+	if (centipede[i] != null && centipede[i].etat)
+	    dessineBoite(centipede[i]);
     }
 }
 
@@ -265,6 +301,18 @@ function spawnAraignee() {
     };
 }
 
+renderIA = function () {
+    renderMain();
+
+    if (lastTime % 2000 < 1000)
+	ctx.fillStyle = "#fff";
+    else
+	ctx.fillStyle = "#003";
+    drawCenterText("[ORDINATEUR]", 100);
+    drawCenterText("Insérez 50 centimes ci-dessous", 300);
+    drawCenterText("pour commencer une partie !", 350);
+}
+
 function resetAraignee() {
     araignee.directionX = Math.round(Math.random())?DIR_GAUCHE:DIR_DROITE;
     araignee.vitesseX = araignee.directionX==DIR_GAUCHE?-0.2:0.2;
@@ -284,44 +332,38 @@ function resetAraignee() {
 
 function testMort()
 {
-	for(var i =0 ; i < centipede.length; i++)
-	{	
-		
-		if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0
-			|| araignee.active && collisionTolerante(joueur, araignee, 0.5*TAILLE_BLOC))
-		{
-			if (niveau > nivMax)
-				localStorage.setItem("CentipedeCMINivMax", niveau);
-			if (score > record)
-				localStorage.setItem("CentipedeCMIRecord", score);
-			joueur.vies--;
-			update = function () {};
-			if (joueur.vies >= 0) {
-				var oldUpdate = update;
-				var oldRender = render;
-				render = renderMort;
-				setTimeout(function () {
-					update = updateMain;
-					render = renderMain;
-					spawnCentipede();
-					spawnAraignee();
-					joueur.boite.x = (cnv.width-TAILLE_BLOC)/2;
-					joueur.boite.y = cnv.height-TAILLE_BLOC;
-					for (var i=0 ; i<5 ; i++)
-					  creerChampi(champis);
-					lastTime = Date.now(); 
-				}, 1000);
-			} else {
-				render = renderGameOver;
-			}
-			break;
-			
-		}
-
-
+    for(var i =0 ; i < centipede.length; i++)
+    {	
+	if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0
+	    || araignee.active && collisionTolerante(joueur, araignee, 0.5*TAILLE_BLOC))
+	{
+	    if (niveau > nivMax)
+		    localStorage.setItem("CentipedeCMINivMax", niveau);
+	    if (score > record)
+		    localStorage.setItem("CentipedeCMIRecord", score);
+	    joueur.vies--;
+	    var oldUpdate = update;
+	    var oldRender = render;
+	    update = function () {};
+	    if (joueur.vies >= 0) {
+		render = renderMort;
+		setTimeout(function () {
+		    update = oldUpdate;
+		    render = oldRender;
+		    spawnCentipede();
+		    spawnAraignee();
+		    joueur.boite.x = (cnv.width-TAILLE_BLOC)/2;
+		    joueur.boite.y = cnv.height-TAILLE_BLOC;
+		    for (var i=0 ; i<5 ; i++)
+		      creerChampi(champis);
+		    lastTime = Date.now(); 
+		}, 1000);
+	    } else {
+		    render = renderGameOver;
+	    }
+	    break;
 	}
-	
-	
+    }
 }
 	
 
@@ -935,11 +977,12 @@ function dessineBoite(obj) {
 }
 
 function playSound(name) {
-    //document.getElementById("son"+name).pause();
-    document.getElementById("son"+name).currentTime = 0;
-    if (document.getElementById("son"+name).paused)
-	document.getElementById("son"+name).play();
-    console.log(document.getElementById("son"+name));
+    var s = document.getElementById("son"+name);
+    if (s.readyState == 4) {
+	s.currentTime = 0;
+	if (s.paused)
+	    s.play();
+    }
 }
 
 /**

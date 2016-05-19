@@ -59,6 +59,12 @@
 		background-size: cover;
 	}
 
+	body img
+	{
+		display: block;
+		margin: 0 auto;
+	}
+
 	p 
 	{
 		font-size: 16pt;
