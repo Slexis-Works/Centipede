@@ -44,6 +44,7 @@ var rotations = [0, Math.PI, -Math.PI/2, Math.PI/2];
 
 var update, render;
 
+
 /////////////////////
 // Initialisation //
 ///////////////////
@@ -51,6 +52,25 @@ var update, render;
 initJeuJoueur = function() {
     update = function() {};
     setTimeout(function() {
+		initPartie();
+
+		update = updateMain;
+		render = renderMain;
+
+    }, 500);
+}
+
+initJeuIA= function() {
+    update = function() {};
+    setTimeout(function() {
+		initPartie();
+		update = updateIA;
+		render = renderIA;
+
+    }, 500);
+}
+
+initPartie = function() {
 	niveau = 1;
 	score = 0;
 	for (var ch = 0 ; ch < champis.length ; ch++)
@@ -58,7 +78,7 @@ initJeuJoueur = function() {
 	spawnCentipede();
 	spawnAraignee();
 	
-        joueur.boite.x = (cnv.width-TAILLE_BLOC)/2
+	joueur.boite.x = (cnv.width-TAILLE_BLOC)/2;
 	joueur.boite.y = cnv.height-TAILLE_BLOC;
 	joueur.vies = 2;
 	joueur.vitesse = 0.2;
@@ -66,12 +86,9 @@ initJeuJoueur = function() {
 	champis = [];
 	nbChampis = Math.floor(Math.random()*(CHAMPIS_MAX-CHAMPIS_MIN+1) + CHAMPIS_MIN);
 	for (var i=0 ; i<nbChampis ; i++)
-	    creerChampi(champis);
-
-	update = updateMain;
-	render = renderMain;
-
-    }, 500);
+		creerChampi(champis);
+	
+	lastTime = Date.now();
 }
 
 initLancement = function() {
@@ -346,20 +363,23 @@ function testMort()
 	    var oldRender = render;
 	    update = function () {};
 	    if (joueur.vies >= 0) {
-		render = renderMort;
-		setTimeout(function () {
-		    update = oldUpdate;
-		    render = oldRender;
-		    spawnCentipede();
-		    spawnAraignee();
-		    joueur.boite.x = (cnv.width-TAILLE_BLOC)/2;
-		    joueur.boite.y = cnv.height-TAILLE_BLOC;
-		    for (var i=0 ; i<5 ; i++)
-		      creerChampi(champis);
-		    lastTime = Date.now(); 
-		}, 1000);
+			render = renderMort;
+			setTimeout(function () {
+				update = oldUpdate;
+				render = oldRender;
+				spawnCentipede();
+				spawnAraignee();
+				joueur.boite.x = (cnv.width-TAILLE_BLOC)/2;
+				joueur.boite.y = cnv.height-TAILLE_BLOC;
+				for (var i=0 ; i<5 ; i++)
+					creerChampi(champis);
+				lastTime = Date.now(); 
+			}, 1000);
 	    } else {
 		    render = renderGameOver;
+			setTimeout(function() {
+				initJeuIA();
+			}, 5000);
 	    }
 	    break;
 	}

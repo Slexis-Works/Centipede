@@ -7,10 +7,11 @@
 
     <script src="script.js"></script>
     <script>
-	function centreJeu() {
-	    window.scrollTo(0, cnv.offsetTop + (480 + 310 - window.innerHeight)/2);
+	function centreJeu(force) {
+		if (force || update == updateMain)
+			window.scrollTo(0, cnv.offsetTop + (480 + 310 - window.innerHeight)/2);
 	}
-	window.onresize = centreJeu;
+	window.onresize = function(){centreJeu();};
     </script>
 </head>
 <body onload="init();" >
@@ -18,8 +19,8 @@
     <h2>Présentation</h2>
     <p>Ce jeu a été réalisé après l'analyse de sa version jouable sur <a href="http://my.ign.com/atari/centipede" target="_blank">IGN</a> sans pour autant reprendre chaque élément tel qu'il est. Tout cela s'inscrit dans le cadre du <a href="https://dept-info.univ-fcomte.fr/cmi/html/" target="_blank">Cursus Master en Ingénierie Informatique</a> de l'Université de Franche-Comté à Besançon, campus Sciences et Techniques. Les auteurs sont Alexis <span style="font-variant: small-caps;">Cabodi</span> et Théo <span style="font-variant: small-caps;">Mottet</span>.</p>
 
-    <h2>Jouer</h2>
-	<div onclick="centreJeu();">
+    <h2>Jouer <span style="font-size: 15pt;">(cliquez sur la zone d'images pour centrer le jeu à tout moment)</span></h2>
+	<div onclick="centreJeu(true);">
 	    <img src="imgs/Centivectorhigh.png" width="1000" height="270" alt="Bannière" />
 	    <!--<img src="imgs/CadreJeu.png" width="1000"  height="" />-->
 	    <canvas id="cnv" width="480" height="480">
