@@ -215,13 +215,15 @@ updateMain = function(d) {
 }
 
 updateIA = function(d) {
+	var prevDT = dt;
+	dt = d - lastTime;
     appuiHaut = false;
     appuiBas = false;
     appuiGauche = false;
     appuiDroite = false;
     appuiTir = false;
 
-	if (estPres(araignee)
+	if (araignee.active && estPres(araignee)
 		&& ((araignee.directionX == DIR_GAUCHE)
 			?joueur.boite.x < araignee.boite.x + araignee.boite.w
 			:joueur.boite.x + joueur.boite.w > araignee.boite.x)) {
@@ -230,6 +232,9 @@ updateIA = function(d) {
 			&& araignee.vitesseY < 0) {
 			moveX = true;
 			appuiBas = true;
+			console.log(joueur.boite.x + joueur.boite.w/2);
+			console.log(araignee.boite.x);
+			console.log(araignee.boite.x + araignee.boite.w);
 		} else if (joueur.boite.y < araignee.boite.y - 1.5*araignee.boite.h
 			&& (araignee.vitesseX != 0 || araignee.vitesseY > 0)) {
 			moveX = araignee.vitesseX == 0;
@@ -245,13 +250,78 @@ updateIA = function(d) {
 			else
 				appuiGauche = true;		
 		}
-			
+		appuiTir = joueur.boite.y > araignee.boite.y
+				&& joueur.boite.x + joueur.boite.w/2 > araignee.boite.x
+				&& joueur.boite.x + joueur.boite.w/2 < araignee.boite.x + araignee.boite.w;
 	} else {
+		var dist = Infinity, plusProche = -1, panique = false;
+		var segFuturePos, oldCenti, oldDT;
+		for (var seg = 0 ; seg < centipede.length ; seg++) {
+			if (centipede[seg].etat != 0 && !panique) {
+				if (centipede[seg].boite.y < joueur.boite.y + joueur.boite.h
+					&& centipede[seg].boite.y + centipede[seg].boite.h > joueur.boite.y) {
+						panique = true;
+						plusProche = seg;
+				} else if ((plusProche == -1 || Math.abs(joueur.boite.x - centipede[seg].boite.x) < dist)) {
+					plusProche = seg;
+					dist = Math.abs(joueur.boite.x - centipede[seg].boite.x);
+				}
+			}
+		}
 		
-		
+		if (plusProche == -1) {
+			// Idle, on va pas détruire exprès des champis pour le fun, ils ralentissent les tirs
+			if (joueur.boite.x < (480 - joueur.boite.x)/2 - joueur.boite.w)
+				appuiDroite = true;
+			if (joueur.boite.x > (480 - joueur.boite.x)/2 + joueur.boite.w)
+				appuiGauche = true;
+			if (joueur.boite.y > (480 + HAUT_ZONE_JOUEUR)/2 + joueur.boite.h)
+				appuiHaut = true;
+			if (joueur.boite.y < (480 + HAUT_ZONE_JOUEUR)/2 - joueur.boite.h)
+				appuiBas = true;
+			appuiTir = true;
+		} else if (panique) {
+			if (centipede[plusProche].boite.y > 480 - 1.1*centipede[plusProche].boite.h)
+				appuiHaut= true;
+			else
+				appuiBas = true;
+		} else {
+			var seg = centipede[plusProche];
+			var tempsTir = (joueur.boite.y - seg.boite.y + seg.boite.h/2)/tir.vitesse;
+			/*segFuturePos = seg.boite.x;
+			if (seg.direction == DIR_GAUCHE) {
+				segFuturePos -= tempsTir * seg.vitesse;
+			} else {
+				segFuturePos += tempsTir * seg.vitesse;
+			}*/
+			
+			console.log("Simulation du centipède pour dt = " + tempsTir);
+			oldDT = dt;
+			oldCenti = copy(centipede);
+			
+			dt = tempsTir;
+			avancementCentipedes();
+			segFuturePos = centipede[plusProche].boite.x;
+			dt = oldDT;
+			centipede = oldCenti;
+			
+			
+			if (joueur.boite.x + joueur.boite.w/2 > segFuturePos + seg.boite.w)
+				appuiGauche = true;
+			else if (joueur.boite.x + joueur.boite.w/2 < segFuturePos)
+				appuiDroite = true;
+			// appuiTir = joueur.boite.y > araignee.boite.y
+					// && joueur.boite.x + joueur.boite.w/2 > segFuturePos
+					// && joueur.boite.x + joueur.boite.w/2 < segFuturePos + seg.boite.w;
+			
+		appuiTir = true;
+			appuiHaut = joueur.boite.y > (480+HAUT_ZONE_JOUEUR)/2;
+			appuiBas = joueur.boite.y < (480+HAUT_ZONE_JOUEUR)/2 - TAILLE_BLOC;
+			
+		}
 	}
 
-	
+	dt = prevDT;
     updateMain(d);
 }
 
@@ -384,10 +454,12 @@ function testMort()
 	if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0
 	    || araignee.active && collisionTolerante(joueur, araignee, 0.5*TAILLE_BLOC))
 	{
-	    if (niveau > nivMax)
-		    localStorage.setItem("CentipedeCMINivMax", niveau);
-	    if (score > record)
-		    localStorage.setItem("CentipedeCMIRecord", score);
+		if (update == updateMain) {// Ce serait bête que l'ordi batte votre record
+			if (niveau > nivMax)
+				localStorage.setItem("CentipedeCMINivMax", niveau);
+			if (score > record)
+				localStorage.setItem("CentipedeCMIRecord", score);
+		}
 	    joueur.vies--;
 	    var oldUpdate = update;
 	    var oldRender = render;
@@ -1004,11 +1076,26 @@ function addScore(delta) {
 }
 
 function estPres(en) {
-	console.log("estPres :");
-	console.log(Math.abs(joueur.boite.x + joueur.boite.w/2 - en.boite.x - en.boite.w/2) + Math.abs(joueur.boite.y + joueur.boite.y/2 - en.boite.y - en.boite.y/2));
-	console.log(3*(Math.max(joueur.boite.w, joueur.boite.h) + Math.max(en.boite.w, en.boite.h)));
+	//console.log("estPres :");
+	//console.log(Math.abs(joueur.boite.x + joueur.boite.w/2 - en.boite.x - en.boite.w/2) + Math.abs(joueur.boite.y + joueur.boite.y/2 - en.boite.y - en.boite.y/2));
+	//console.log(3*(Math.max(joueur.boite.w, joueur.boite.h) + Math.max(en.boite.w, en.boite.h)));
 	return Math.abs(joueur.boite.x + joueur.boite.w/2 - en.boite.x - en.boite.w/2) + Math.abs(joueur.boite.y + joueur.boite.y/2 - en.boite.y - en.boite.y/2)
 		< 3*(Math.max(joueur.boite.w, joueur.boite.h) + Math.max(en.boite.w, en.boite.h));
+}
+
+/**
+ * Fonction de copie d'objets pour éviter l'agalité de références
+ * http://stackoverflow.com/questions/7486085/copying-array-by-value-in-javascript/23536726#23536726
+ */
+function copy(o) {
+   var output, v, key;
+   output = Array.isArray(o) ? [] : {};
+   for (key in o) {
+	   //console.log("Copying key " + key);
+       v = o[key];
+       output[key] = (typeof v === "object" && key != "img") ? copy(v) : v;
+   }
+   return output;
 }
 // Affichage
 
