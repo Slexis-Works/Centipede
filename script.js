@@ -214,7 +214,6 @@ updateMain = function(d) {
     testMort();
 }
 
-
 updateIA = function(d) {
     appuiHaut = false;
     appuiBas = false;
@@ -222,6 +221,37 @@ updateIA = function(d) {
     appuiDroite = false;
     appuiTir = false;
 
+	if (estPres(araignee)
+		&& ((araignee.directionX == DIR_GAUCHE)
+			?joueur.boite.x < araignee.boite.x + araignee.boite.w
+			:joueur.boite.x + joueur.boite.w > araignee.boite.x)) {
+		var moveX = joueur.boite.x + joueur.boite.w > araignee.boite.x && joueur.boite.x < araignee.boite.x + araignee.boite.w
+		if (joueur.boite.y > araignee.boite.y + 1.5*araignee.boite.h
+			&& araignee.vitesseY < 0) {
+			moveX = true;
+			appuiBas = true;
+		} else if (joueur.boite.y < araignee.boite.y - 1.5*araignee.boite.h
+			&& (araignee.vitesseX != 0 || araignee.vitesseY > 0)) {
+			moveX = araignee.vitesseX == 0;
+			appuiHaut = true;
+		} else if (araignee.boite.y > (480+HAUT_ZONE_JOUEUR)/2)
+			appuiHaut = true;
+		else
+			appuiBas = true;
+		if (moveX) {
+			// On force
+			if (araignee.directionX == DIR_GAUCHE)
+				appuiDroite = true;
+			else
+				appuiGauche = true;		
+		}
+			
+	} else {
+		
+		
+	}
+
+	
     updateMain(d);
 }
 
@@ -303,18 +333,18 @@ function spawnCentipede() {
 
 function spawnAraignee() {
     araignee = {
-	vitesseX: 0,
-	vitesseY: 0,
-	directionX: DIR_GAUCHE,
-	nextMove: 0,
-	active: false,
-	boite: {
-		x: -TAILLE_BLOC,
-		y: -TAILLE_BLOC,
-		w: TAILLE_BLOC,
-		h: TAILLE_BLOC,
-		img: imgsAraignee[1+(niveau+1)%4]
-	}
+		vitesseX: 0,
+		vitesseY: 0,
+		directionX: DIR_GAUCHE,
+		nextMove: 0,
+		active: false,
+		boite: {
+			x: -TAILLE_BLOC,
+			y: -TAILLE_BLOC,
+			w: TAILLE_BLOC,
+			h: TAILLE_BLOC,
+			img: imgsAraignee[1+(niveau+1)%4]
+		}
     };
 }
 
@@ -973,6 +1003,13 @@ function addScore(delta) {
 	}
 }
 
+function estPres(en) {
+	console.log("estPres :");
+	console.log(Math.abs(joueur.boite.x + joueur.boite.w/2 - en.boite.x - en.boite.w/2) + Math.abs(joueur.boite.y + joueur.boite.y/2 - en.boite.y - en.boite.y/2));
+	console.log(3*(Math.max(joueur.boite.w, joueur.boite.h) + Math.max(en.boite.w, en.boite.h)));
+	return Math.abs(joueur.boite.x + joueur.boite.w/2 - en.boite.x - en.boite.w/2) + Math.abs(joueur.boite.y + joueur.boite.y/2 - en.boite.y - en.boite.y/2)
+		< 3*(Math.max(joueur.boite.w, joueur.boite.h) + Math.max(en.boite.w, en.boite.h));
+}
 // Affichage
 
 function dessineBoite(obj) {
