@@ -1,4 +1,4 @@
-// Constantes utiles au programme:
+// Constantes utiles au programme
 var TAILLE_ECRAN = 480, TAILLE_BLOC = 20;
 var CHAMPIS_MIN = 30, CHAMPIS_MAX = 34;
 var DIR_HAUT = 0, DIR_BAS = 1, DIR_GAUCHE = 2, DIR_DROITE = 3; // DO NOT EDIT
@@ -14,11 +14,12 @@ var cnv = null, ctx = null;
 var lastTime = 0, dt;
 
 // Touches clavier
-
+// Versions liées au clavier
 var toucheHaut = false, toucheBas = false,
     toucheGauche = false, toucheDroite = false;
 var toucheZ = false, toucheS = false,
     toucheQ = false, toucheD = false;
+// Versions utiles au jeu
 var appuiHaut = false, appuiBas = false,
     appuiGauche = false, appuiDroite = false;
 var appuiTir = false;
@@ -29,18 +30,18 @@ var joueur;
 var nbChampis, champis = []; // Le compteur ne servira qu'au début
 var centipede = [];
 var tir;
-var araignee, puce, scorpion;
+var araignee; // , puce, scorpion; // laissés tombés
 
 var niveau;
 var score;
 
 // Variables pour le programme
 
-var imgsChampis = [null, [], [], [],[], []];
+var imgsChampis = [null, [], [], [], [], []];
 var imgsAraignee = [null, [], [], [], []];
 var imgTeteCenti, imgCorpsCenti;
 
-var rotations = [0, Math.PI, -Math.PI/2, Math.PI/2];
+var rotations = [0, Math.PI, -Math.PI/2, Math.PI/2]; // Raison du DO NOT EDIT
 
 var update, render;
 
@@ -53,10 +54,8 @@ initJeuJoueur = function() {
     update = function() {};
     setTimeout(function() {
 		initPartie();
-
 		update = updateMain;
 		render = renderMain;
-
     }, 500);
 }
 
@@ -73,8 +72,9 @@ initJeuIA= function() {
 initPartie = function() {
 	niveau = 1;
 	score = 0;
-	for (var ch = 0 ; ch < champis.length ; ch++)
-		champis[ch].boite.img = imgsChampis[(niveau-1)%5+1][champis[ch].vie];
+    nivMax = parseInt(localStorage.getItem("CentipedeCMINivMax")) || 1;
+    record = parseInt(localStorage.getItem("CentipedeCMIRecord")) || 0;
+
 	spawnCentipede();
 	spawnAraignee();
 	
@@ -88,6 +88,10 @@ initPartie = function() {
 	for (var i=0 ; i<nbChampis ; i++)
 		creerChampi(champis);
 	
+	// Élimination des résidus d'une partie précédente, manuelle ou automatique
+	miseAJourAppuis();
+	appuiTir = false;
+	
 	lastTime = Date.now();
 }
 
@@ -95,7 +99,6 @@ initLancement = function() {
     // lancement de la boucle de jeu
     update = updateIA;
     render = renderIA;
-    score = 0;
     lastTime = Date.now();
     boucleDeJeu();
 }
@@ -125,8 +128,8 @@ initCentipede = function() {
 	}
 	imgTeteCenti.src = "imgs/TeteCentipedeHaut.png";
 }
-initTir = function()
-{
+
+initTir = function() {
 	tir = 
 	{
 		boite: {x: 0, y:0, w:5, h:15 , col:"#FE0101"},
@@ -181,6 +184,7 @@ init = function() {
 
     // Initialisation des variables
     niveau = 1; // creerChampi en a besoin
+	score = 0;
     nivMax = parseInt(localStorage.getItem("CentipedeCMINivMax")) || 1;
     record = parseInt(localStorage.getItem("CentipedeCMIRecord")) || 0;
 
@@ -288,14 +292,7 @@ updateIA = function(d) {
 		} else {
 			var seg = centipede[plusProche];
 			var tempsTir = (joueur.boite.y - seg.boite.y + seg.boite.h/2)/tir.vitesse;
-			/*segFuturePos = seg.boite.x;
-			if (seg.direction == DIR_GAUCHE) {
-				segFuturePos -= tempsTir * seg.vitesse;
-			} else {
-				segFuturePos += tempsTir * seg.vitesse;
-			}*/
 			
-			console.log("Simulation du centipède pour dt = " + tempsTir);
 			oldDT = dt;
 			oldCenti = copy(centipede);
 			
@@ -310,9 +307,6 @@ updateIA = function(d) {
 				appuiGauche = true;
 			else if (joueur.boite.x + joueur.boite.w/2 < segFuturePos)
 				appuiDroite = true;
-			// appuiTir = joueur.boite.y > araignee.boite.y
-					// && joueur.boite.x + joueur.boite.w/2 > segFuturePos
-					// && joueur.boite.x + joueur.boite.w/2 < segFuturePos + seg.boite.w;
 			
 		appuiTir = true;
 			appuiHaut = joueur.boite.y > (480+HAUT_ZONE_JOUEUR)/2;
@@ -431,70 +425,59 @@ renderIA = function () {
 }
 
 function resetAraignee() {
-    araignee.directionX = Math.round(Math.random())?DIR_GAUCHE:DIR_DROITE;
-    araignee.vitesseX = araignee.directionX==DIR_GAUCHE?-0.2:0.2;
-    araignee.vitesseY = 0.2;
-    araignee.nextMove = lastTime + 100 + 300*Math.random();
-    araignee.active = true;
-    araignee.boite = {
-	x: araignee.directionX==DIR_GAUCHE?480:-TAILLE_BLOC,
-	y: 480-6*TAILLE_BLOC,
-	w: TAILLE_BLOC,
-	h: TAILLE_BLOC,
-	img: imgsAraignee[1+(niveau+1)%4]
-    };
-
-
+	araignee.directionX = Math.round(Math.random())?DIR_GAUCHE:DIR_DROITE;
+	araignee.vitesseX = araignee.directionX==DIR_GAUCHE?-0.2:0.2;
+	araignee.vitesseY = 0.2;
+	araignee.nextMove = lastTime + 100 + 300*Math.random();
+	araignee.active = true;
+	araignee.boite = {
+		x: araignee.directionX==DIR_GAUCHE?480:-TAILLE_BLOC,
+		y: 480-6*TAILLE_BLOC,
+		w: TAILLE_BLOC,
+		h: TAILLE_BLOC,
+		img: imgsAraignee[1+(niveau+1)%4]
+	};
 }
 
 function testMort()
 {
     for(var i =0 ; i < centipede.length; i++)
     {	
-	if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0
-	    || araignee.active && collisionTolerante(joueur, araignee, 0.5*TAILLE_BLOC))
-	{
-		if (update == updateMain) {// Ce serait bête que l'ordi batte votre record
-			if (niveau > nivMax)
-				localStorage.setItem("CentipedeCMINivMax", niveau);
-			if (score > record)
-				localStorage.setItem("CentipedeCMIRecord", score);
+		if (collisionTolerante(joueur, centipede[i], 0.5*TAILLE_BLOC) && centipede[i].etat !=0
+			|| araignee.active && collisionTolerante(joueur, araignee, 0.5*TAILLE_BLOC))
+		{
+			if (update == updateMain) {// Ce serait bête que l'ordi batte votre record
+				if (niveau > nivMax)
+					localStorage.setItem("CentipedeCMINivMax", niveau);
+				if (score > record)
+					localStorage.setItem("CentipedeCMIRecord", score);
+			}
+			joueur.vies--;
+			var oldUpdate = update;
+			var oldRender = render;
+			update = function () {};
+			if (joueur.vies >= 0) {
+				render = renderMort;
+				setTimeout(function () {
+					update = oldUpdate;
+					render = oldRender;
+					spawnCentipede();
+					spawnAraignee();
+					joueur.boite.x = (cnv.width-TAILLE_BLOC)/2;
+					joueur.boite.y = cnv.height-TAILLE_BLOC;
+					for (var i=0 ; i<5 ; i++)
+						creerChampi(champis);
+					lastTime = Date.now(); 
+				}, 1000);
+			} else {
+				render = renderGameOver;
+				setTimeout(function() {
+					initJeuIA();
+				}, 5000);
+			}
+			break;
 		}
-	    joueur.vies--;
-	    var oldUpdate = update;
-	    var oldRender = render;
-	    update = function () {};
-	    if (joueur.vies >= 0) {
-			render = renderMort;
-			setTimeout(function () {
-				update = oldUpdate;
-				render = oldRender;
-				spawnCentipede();
-				spawnAraignee();
-				joueur.boite.x = (cnv.width-TAILLE_BLOC)/2;
-				joueur.boite.y = cnv.height-TAILLE_BLOC;
-				for (var i=0 ; i<5 ; i++)
-					creerChampi(champis);
-				lastTime = Date.now(); 
-			}, 1000);
-	    } else {
-		    render = renderGameOver;
-			setTimeout(function() {
-				initJeuIA();
-			}, 5000);
-	    }
-	    break;
-	}
     }
-}
-	
-
-
-//text centré
-drawCenterText = function(text, y)
-{
-	var textdim = ctx.measureText(text);
-	ctx.fillText(text, (TAILLE_ECRAN-textdim.width)/2, y);
 }
 
 function renderGameOver() {
@@ -631,10 +614,6 @@ function deplacementPersonnage()
 				
 	}
 }
-// function avancementAraignee () {
-	// for (var i = 0 )
-	
-// }
 
 function avancementCentipedes() {
 	var iTete, curCP;
@@ -656,7 +635,7 @@ function avancementCentipedes() {
 	}
 }
 
-function avanceTete(i, dp) { // Gestion récursive du deltaPos (>0) en trop
+function avanceTete(i, dp) { // Gestion récursive du deltaPos (>0) en trop, pratique pour la simulation dans l'IA
 	switch (centipede[i].direction) {
 		case DIR_HAUT:
 			if (centipede[i].boite.y - dp <= centipede[i].debutVertical - TAILLE_BLOC) {
@@ -705,13 +684,6 @@ function avanceTete(i, dp) { // Gestion récursive du deltaPos (>0) en trop
 				centipede[i].checkpoints.unshift({x: centipede[i].boite.x, y: centipede[i].boite.y, dir: DIR_BAS});
 				if (centipede[i].boite.y == 480 - TAILLE_BLOC) {
 					centipede[i].ancienneDirY = DIR_HAUT;
-					/*if (i < centipede.length-1 && centipede[i+1].etat == 2) {
-						centipede[i+1].etat = 1;
-						centipede[i+1].boite.img = imgTeteCenti;
-						centipede[i+1].checkpoints = [];
-						centipede[i+1].ancienneDirX = centipede[i].ancienneDirX || centipede[i].direction;
-						centipede[i+1].ancienneDirY = DIR_BAS;
-					}*/
 				}
 			} else
 				centipede[i].boite.y += dp;
@@ -786,11 +758,6 @@ function placementSegment(i, tete, iCP, dp) {
 	var testCP = iCP < centipede[tete].checkpoints.length,
 		applyCP = false,
 		cp = centipede[tete].checkpoints[iCP];
-	// console.log(tete);
-	// console.log(iCP);
-	// console.log(centipede);
-	// console.log(centipede[tete].checkpoints[iCP]);
-	// console.log(cp);
 	switch (centipede[i].direction) {
 		case DIR_HAUT:
 			centipede[i].boite.y += dp;
@@ -816,7 +783,6 @@ function placementSegment(i, tete, iCP, dp) {
 		centipede[i].direction = cp.dir;
 		iCP++;
 		if (dp > 0) {
-			//console.log("Replacing segment ", i, " for ", TAILLE_BLOC - dp, "px");
 			iCP = placementSegment(i, tete, iCP, dp);
 		}
 	}
@@ -826,16 +792,13 @@ function placementSegment(i, tete, iCP, dp) {
 function updateAraignee() {
     if (lastTime > araignee.nextMove) {
 		if (araignee.active) {
-			switch (Math.floor(Math.random()*3)) {
-			case 0: // Inversion sur Y
-			case 1:
+			if (Math.floor(Math.random() < 2/3)) {
+				// Inversion sur Y
 				araignee.vitesseY *= -1;
 				araignee.vitesseX = 0;
-				break;
-			case 2: // Partage en diagonale
+			} else { // Partage en diagonale
 				araignee.vitesseX = araignee.directionX==DIR_GAUCHE?-0.2:0.2;
 				araignee.vitesseY = 0.2;
-				break;
 			}
 		} else {
 			resetAraignee();
@@ -858,7 +821,7 @@ function updateAraignee() {
     }
 	for(var i =0 ; i < champis.length;i++)
 	{
-		if(collision(araignee, champis[i]))
+		if(collisionTolerante(araignee, champis[i], 0.4*TAILLE_BLOC))
 		{
 			detruireChampi(i);
 			// break;
@@ -885,30 +848,7 @@ function niveauSuivant() {
 	}
 }
 
-//Avec Z,Q,S,Date
-/*
-	if (appuiD && joueur.boite.x < cnv.width) {
-        boite.dt++;
-		//if (collision())
-	}
-	
-	if(appuiQ && joueur.boite.x > 0) {
-		boite.dt--;
-		//if (collision())
-	}
 
-	if(appuiZ && joueur.boite.y > 0) {
-		boite.dt--;
-		//if (collision())
-	}
-
-	if(appuiS && joueur.boite.y < cnv.height) {
-		boite.dt--;
-		//if (collision())
-	}
-
-}
-*/
 //////////////////
 // Utilitaires //
 ////////////////
@@ -962,9 +902,9 @@ function collision (e1,e2)
 	var rectangle1 = e1.boite;
 	var rectangle2 = e2.boite;
 	return !(rectangle1.x+rectangle1.w <= rectangle2.x || 
-                 rectangle1.x >= rectangle2.x+rectangle2.w || 
-                 rectangle1.y+rectangle1.h <= rectangle2.y || 
-                 rectangle1.y >= rectangle2.y+rectangle2.h);
+			rectangle1.x >= rectangle2.x+rectangle2.w || 
+			rectangle1.y+rectangle1.h <= rectangle2.y || 
+			rectangle1.y >= rectangle2.y+rectangle2.h);
 }
 
 function collisionTolerante (e1,e2, t)
@@ -972,24 +912,22 @@ function collisionTolerante (e1,e2, t)
 	var rectangle1 = e1.boite;
 	var rectangle2 = e2.boite;
 	return !(rectangle1.x + rectangle1.w <= rectangle2.x + t ||
-                rectangle1.x + t >= rectangle2.x + rectangle2.w ||
-                rectangle1.y + rectangle1.h <= rectangle2.y + t ||
-                rectangle1.y + t >= rectangle2.y + rectangle2.h);
+			rectangle1.x + t >= rectangle2.x + rectangle2.w ||
+			rectangle1.y + rectangle1.h <= rectangle2.y + t ||
+			rectangle1.y + t >= rectangle2.y + rectangle2.h);
 }
 
 function detruireChampi (index) {
-  champis[index].vie--;
-  
-  if (champis[index].vie == 0) {
-    for (var c=index ; c<champis.length-1 ; c++)
-      champis[c] = champis[c+1];
+	champis[index].vie--;
+
+	if (champis[index].vie == 0) {
+		for (var c=index ; c<champis.length-1 ; c++)
+			champis[c] = champis[c+1];
 		champis.pop();
 		addScore(1);
-  } else {
-    champis[index].boite.img = imgsChampis[(niveau-1)%5+1][champis[index].vie];
-	
-  }
-
+	} else {
+		champis[index].boite.img = imgsChampis[(niveau-1)%5+1][champis[index].vie];
+	}
 }
 
 function detruireSegment(i)
@@ -1004,20 +942,7 @@ function detruireSegment(i)
 			var tete = getHead(i+1);
 			centipede[i+1].etat = 1;
 			centipede[i+1].boite.img = imgTeteCenti;
-			/*var seg = i+2;
-			if (centipede[i].etat == 2) {
-				while (seg < centipede.length && centipede[seg].etat == 2) {
-					//console.log(centipede[i+1].checkpoints.length, " checkpoints supprimés pour le segment " + seg +" qui en avait " + centipede[seg].checkpoints.length + ".");
-					for (var ch = 0 ; ch < centipede[i+1].checkpoints.length ; ch++) {
-						//console.log("SHIFTING");
-						centipede[seg].checkpoints.shift();
-					}
-					//console.log("Maintenant " + centipede[seg].checkpoints.length + ".");
-					seg++;
-				}
-			}
-			centipede[i+1].checkpoints = null;*/
-			
+
 			centipede[i+1].checkpoints = [];
 			for (var cp = centipede[i+1].curCP ; cp < centipede[tete].checkpoints.length ; cp++)
 				centipede[i+1].checkpoints.push(centipede[tete].checkpoints[cp]);
@@ -1069,16 +994,13 @@ function getHead(seg) {
 
 function addScore(delta) {
 	if (delta > 0) {
-		var lifePart = Math.floor(score/12000); // Sans ennemis supplémentaires, plus équilibré que 12 000
+		var lifePart = Math.floor(score/10000); // Sans ennemis supplémentaires, plus équilibré que 12 000
 		score += delta;
-		joueur.vies += Math.floor(score/12000) - lifePart;
+		joueur.vies += Math.floor(score/10000) - lifePart;
 	}
 }
 
 function estPres(en) {
-	//console.log("estPres :");
-	//console.log(Math.abs(joueur.boite.x + joueur.boite.w/2 - en.boite.x - en.boite.w/2) + Math.abs(joueur.boite.y + joueur.boite.y/2 - en.boite.y - en.boite.y/2));
-	//console.log(3*(Math.max(joueur.boite.w, joueur.boite.h) + Math.max(en.boite.w, en.boite.h)));
 	return Math.abs(joueur.boite.x + joueur.boite.w/2 - en.boite.x - en.boite.w/2) + Math.abs(joueur.boite.y + joueur.boite.y/2 - en.boite.y - en.boite.y/2)
 		< 3*(Math.max(joueur.boite.w, joueur.boite.h) + Math.max(en.boite.w, en.boite.h));
 }
@@ -1091,18 +1013,15 @@ function copy(o) {
    var output, v, key;
    output = Array.isArray(o) ? [] : {};
    for (key in o) {
-	   //console.log("Copying key " + key);
        v = o[key];
        output[key] = (typeof v === "object" && key != "img") ? copy(v) : v;
    }
    return output;
 }
+
 // Affichage
 
 function dessineBoite(obj) {
-    //console.log(obj);
-    //ctx.fillStyle = "#0f0";
-    //ctx.fillRect(obj.boite.x, obj.boite.y, obj.boite.w, obj.boite.h);
 	if (obj.boite != null) {
 		if (obj.boite.img != null) {
 			if (obj.boite.rotate !== undefined) {
@@ -1120,12 +1039,18 @@ function dessineBoite(obj) {
 	}
 }
 
+drawCenterText = function(text, y)
+{
+	var textdim = ctx.measureText(text);
+	ctx.fillText(text, (TAILLE_ECRAN-textdim.width)/2, y);
+}
+
 function playSound(name) {
     var s = document.getElementById("son"+name);
     if (s.readyState == 4) {
-	s.currentTime = 0;
-	if (s.paused)
-	    s.play();
+		s.currentTime = 0;
+		if (s.paused)
+			s.play();
     }
 }
 
@@ -1134,43 +1059,42 @@ function playSound(name) {
  *  Associée à l'événement "keyDown"
  */
 captureAppuiToucheClavier = function(event) {
-    // pratique pour connaître les keyCode des touches du clavier :
-    //  --> http://www.cambiaresearch.com/articles/15/javascript-key-codes
-    switch (event.keyCode) {
-      case 38:
-        toucheHaut = true;
-        event.preventDefault();
-        break;
-      case 40:
-        toucheBas = true;
-        event.preventDefault();
-        break;
-      case 37:
-        toucheGauche = true;
-        event.preventDefault();
-        break;
-      case 39:
-        toucheDroite = true;
-        event.preventDefault();
-        break;
-      case 90:
-        toucheZ = true;
-        break;
-      case 83:
-        toucheS = true;
-        break;
-      case 81:
-        toucheQ = true;
-        break;
-      case 68:
-        toucheD = true;
-        break;
-      case 32:
-        appuiTir = true;
-        event.preventDefault();
-    }
-
-    miseAJourAppuis();
+	// pratique pour connaître les keyCode des touches du clavier :
+	//  --> http://www.cambiaresearch.com/articles/15/javascript-key-codes
+	switch (event.keyCode) {
+		case 38:
+			toucheHaut = true;
+			event.preventDefault();
+			break;
+		case 40:
+			toucheBas = true;
+			event.preventDefault();
+			break;
+		case 37:
+			toucheGauche = true;
+			event.preventDefault();
+			break;
+		case 39:
+			toucheDroite = true;
+			event.preventDefault();
+			break;
+		case 90:
+			toucheZ = true;
+			break;
+		case 83:
+			toucheS = true;
+			break;
+		case 81:
+			toucheQ = true;
+			break;
+		case 68:
+			toucheD = true;
+			break;
+		case 32:
+			appuiTir = true;
+			event.preventDefault();
+	}
+	miseAJourAppuis();
 }
 
 /**
@@ -1178,47 +1102,47 @@ captureAppuiToucheClavier = function(event) {
  *  Associée à l'événement "keyUp"
  */
 captureRelacheToucheClavier = function(event) {
-    switch (event.keyCode) {
-      case 38:
-        toucheHaut = false;
-        break;
-      case 40:
-        toucheBas = false;
-        break;
-      case 37:
-        toucheGauche = false;
-        break;
-      case 39:
-        toucheDroite = false;
-        break;
-      case 90:
-        toucheZ = false;
-        break;
-      case 83:
-        toucheS = false;
-        break;
-      case 81:
-        toucheQ = false;
-        break;
-      case 68:
-        toucheD = false;
-        break;
-      case 32:
-        appuiTir = false;
-    }
-  miseAJourAppuis();
+	switch (event.keyCode) {
+		case 38:
+			toucheHaut = false;
+			break;
+		case 40:
+			toucheBas = false;
+			break;
+		case 37:
+			toucheGauche = false;
+			break;
+		case 39:
+			toucheDroite = false;
+			break;
+		case 90:
+			toucheZ = false;
+			break;
+		case 83:
+			toucheS = false;
+			break;
+		case 81:
+			toucheQ = false;
+			break;
+		case 68:
+			toucheD = false;
+			break;
+		case 32:
+			appuiTir = false;
+	}
+	miseAJourAppuis();
 }
 
 miseAJourAppuis = function() {
-  appuiHaut = toucheHaut || toucheZ;
-  appuiBas = toucheBas || toucheS;
-  appuiGauche = toucheGauche || toucheQ;
-  appuiDroite = toucheDroite || toucheD;
-  //console.log((appuiHaut)?"Touche Haut appuyée":"Touche Haut relâchée.");
-  //console.log((appuiBas)?"Touche Bas appuyée":"Touche Bas relâchée.");
-  //console.log((appuiGauche)?"Touche Gauche appuyée":"Touche Gauche relâchée.");
-  //console.log((appuiDroite)?"Touche Droite appuyée":"Touche Droite relâchée.");
-  //console.log((appuiTir)?"Touche Tir appuyée":"Touche Tir relâchée.");
+	appuiHaut = toucheHaut || toucheZ;
+	appuiBas = toucheBas || toucheS;
+	appuiGauche = toucheGauche || toucheQ;
+	appuiDroite = toucheDroite || toucheD;
+	//console.log((appuiHaut)?"Touche Haut appuyée":"Touche Haut relâchée.");
+	//console.log((appuiBas)?"Touche Bas appuyée":"Touche Bas relâchée.");
+	//console.log((appuiGauche)?"Touche Gauche appuyée":"Touche Gauche relâchée.");
+	//console.log((appuiDroite)?"Touche Droite appuyée":"Touche Droite relâchée.");
+	//console.log((appuiTir)?"Touche Tir appuyée":"Touche Tir relâchée.");
 }
 
 /**
